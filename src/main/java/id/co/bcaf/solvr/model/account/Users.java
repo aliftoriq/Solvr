@@ -1,10 +1,24 @@
 package id.co.bcaf.solvr.model.account;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class Users {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(nullable = false)
     private String role;
+
+    @Column(nullable = false)
     private String password;
 
     public Users() {
@@ -52,5 +66,8 @@ public class Users {
 
     public Users getUsers() {
         return this;
+    }
+
+    public interface getId {
     }
 }

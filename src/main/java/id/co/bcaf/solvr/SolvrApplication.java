@@ -8,7 +8,7 @@ public class SolvrApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SolvrApplication.class, args);
-		System.out.println("HALO");
+		// System.out.println("HALO");
 	}
 
 }

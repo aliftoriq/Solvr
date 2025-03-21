@@ -1,6 +1,12 @@
 package id.co.bcaf.solvr.model.account;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Role")
 public class Role {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
 
