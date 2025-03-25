@@ -1,0 +1,75 @@
+package id.co.bcaf.solvr.security;
+
+import id.co.bcaf.solvr.utils.JwtUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
+
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationFilter extends GenericFilterBean {
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+    private final JwtUtil jwtUtil;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String requestURI = httpRequest.getRequestURI();
+        String authHeader = httpRequest.getHeader("Authorization");
+
+        logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
+
+        // Skip authentication for login and test endpoints
+        if (requestURI.equals("/api/v1/auth/login") || requestURI.equals("/api/v1/auth/test")) {
+            logger.debug("Skipping authentication for public endpoint: {}", requestURI);
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Check for Authorization header
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.warn("Missing or invalid Authorization header for URI: {}", requestURI);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
+            return;
+        }
+
+        String token = authHeader.substring(7);
+
+        try {
+            String username = jwtUtil.extractusername(token);
+            logger.info("Extracted username from token: {}", username);
+
+            if (jwtUtil.validateToken(token, username)) {
+                logger.debug("Token validated for user: {}", username);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(username, null, null);
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                chain.doFilter(request, response);
+            } else {
+                logger.warn("Invalid token for user: {}", username);
+                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            }
+        } catch (Exception e) {
+            logger.error("Error processing JWT token", e);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token processing error: " + e.getMessage());
+        }
+    }
+}
