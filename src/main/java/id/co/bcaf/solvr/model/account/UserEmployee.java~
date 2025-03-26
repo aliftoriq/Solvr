@@ -22,5 +22,5 @@ public class UserEmployee {
     Branch branch;
 
     @OneToMany
-    private Set<LoanApplication> loanApplications;
+    private LoanApplication loanApplications;
 }

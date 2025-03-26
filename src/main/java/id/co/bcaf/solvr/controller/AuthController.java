@@ -2,26 +2,35 @@ package id.co.bcaf.solvr.controller;
 
 import id.co.bcaf.solvr.dto.LoginRequest;
 import id.co.bcaf.solvr.dto.ResponseTemplate;
-import id.co.bcaf.solvr.model.services.AuthService;
+import id.co.bcaf.solvr.dto.UserHttp;
+import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.services.AuthService;
+import id.co.bcaf.solvr.services.UserService;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private final JwtUtil jwtUtil;
     private final AuthService authService;
+    private final UserService userService;
 
     // Constructor injection
-    public AuthController(JwtUtil jwtUtil, AuthService authService) {
+    public AuthController(JwtUtil jwtUtil, AuthService authService, UserService userService) {
         this.jwtUtil = jwtUtil;
         this.authService = authService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -51,30 +60,34 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> testToken(@RequestHeader("Authorization") String authHeader) {
-        try {
-            // Validate Authorization header
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.warn("Invalid Authorization header");
-                return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid token format");
-            }
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        // Call the service to create the user
 
-            // Extract token
-            String token = authHeader.substring(7);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-            // Extract username
-            String username = jwtUtil.extractusername(token);
+        try{
+            User response = userService.createUser(user);
 
-            logger.info("Token test successful for username: {}", username);
-            return ResponseEntity.ok("Username: " + username);
-        } catch (Exception e) {
-            logger.error("Token validation error", e);
+            // Create response DTO using Lombok's setter
+            UserHttp.Response httpResponse = new UserHttp.Response(
+                    response.getName(),
+                    response.getUsername(),
+                    response.getRole().getName(),
+                    response.isDeleted()
+            );
+
+            // Return the newly created user, but only include the non-sensitive information
             return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Token validation failed");
+                    .ok(new ResponseTemplate(200, "Success", httpResponse));
+        }catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseTemplate(500, "Internal Server Error", e.getMessage()));
+
         }
+
+
     }
+
 }

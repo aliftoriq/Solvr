@@ -10,11 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -35,17 +38,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
 
-        // Skip authentication for login and test endpoints
-        if (requestURI.equals("/api/v1/auth/login") || requestURI.equals("/api/v1/auth/test")) {
-            logger.debug("Skipping authentication for public endpoint: {}", requestURI);
-            chain.doFilter(request, response);
-            return;
-        }
+//        // Skip authentication for login and test endpoints
+//        if (requestURI.equals("/api/v1/auth/login") || requestURI.equals("/api/v1/auth/test")) {
+//            logger.debug("Skipping authentication for public endpoint: {}", requestURI);
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         // Check for Authorization header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            logger.warn("Missing or invalid Authorization header for URI: {}", requestURI);
-            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
+            chain.doFilter(request, response);
+//            logger.warn("Missing or invalid Authorization header for URI: {}", requestURI);
+//            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
             return;
         }
 
@@ -53,12 +57,17 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         try {
             String username = jwtUtil.extractusername(token);
+            String role = jwtUtil.extractRole(token);
+
             logger.info("Extracted username from token: {}", username);
 
             if (jwtUtil.validateToken(token, username)) {
+
+                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+
                 logger.debug("Token validated for user: {}", username);
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(username, null, null);
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

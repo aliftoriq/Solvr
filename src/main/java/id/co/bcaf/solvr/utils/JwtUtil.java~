@@ -9,13 +9,14 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Component
 public class JwtUtil {
 
     private final Key SECRET_KEY;
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 jam
+    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         System.out.println("SECRET_KEY (Raw): " + secret);
@@ -28,7 +29,7 @@ public class JwtUtil {
     }
 
     // Generate Token
-    public String generateToken(String username) {
+    public String generateToken(String username, String role, UUID id) {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
 
@@ -38,6 +39,8 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
+                .claim("id", id.toString())
                 .setIssuedAt(issuedAt)
                 .setExpiration(expiration)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -63,6 +66,19 @@ public class JwtUtil {
         } catch (Exception e) {
             throw new RuntimeException("Invalid token: " + e.getMessage());
         }
+    }
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey()) // Use the same key used in signing
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class); // Mengambil role dari token
     }
 
     // Validate token

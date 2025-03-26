@@ -1,0 +1,50 @@
+package id.co.bcaf.solvr.services;
+
+import id.co.bcaf.solvr.dto.ResponseTemplate;
+import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.repository.UserRepository;
+import id.co.bcaf.solvr.utils.JwtUtil;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+    }
+
+    public List<User> getAllUsers(String authHeader) {
+        String username = extractUsernameFromToken(authHeader);
+        return userRepository.findAll();
+    }
+
+    public User createUser(User user) {
+        return userRepository.save(user);
+    }
+
+    public ResponseTemplate updateUser(UUID id, User user) {
+        user.setId(id);
+        return new ResponseTemplate(200, "Success", userRepository.save(user));
+    }
+
+    public ResponseTemplate deleteUser(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
+        return new ResponseTemplate(200, "Success Deleted Data " + id, null);
+    }
+
+    private String extractUsernameFromToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        return jwtUtil.extractusername(token);
+    }
+}

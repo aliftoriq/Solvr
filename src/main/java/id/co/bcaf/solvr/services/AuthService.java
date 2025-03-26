@@ -1,9 +1,11 @@
-package id.co.bcaf.solvr.model.services;
+package id.co.bcaf.solvr.services;
 
-import id.co.bcaf.solvr.model.account.Users;
+import id.co.bcaf.solvr.model.account.User;
 import id.co.bcaf.solvr.repository.UserRepository;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private UserRepository userRepository;
@@ -24,14 +27,14 @@ public class AuthService {
 
     public String authenticateUser(String username, String password) {
         logger.info("Login attempt for : {}", username);
-        Optional<Users> userOptional = userRepository.findByUsername(username);
+        Optional<User> userOptional = userRepository.findByUsername(username);
 
         if (userOptional.isPresent()) {
-            Users user = userOptional.get();
+            User user = userOptional.get();
             logger.info("Successful login for user: {}", user.getUsername());
-            if (user.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, user.getPassword()))  {
                 logger.info("Correct password for ");
-                return jwtUtil.generateToken(username);
+                return jwtUtil.generateToken(username, user.getRole().getName(), user.getId());
             }
             else {
                 logger.warn("Wrong password for : {}", username);
@@ -40,6 +43,6 @@ public class AuthService {
         else {
             logger.warn("User not found: {}", username);
         }
-        return ;
+        return null;
     }
 }
