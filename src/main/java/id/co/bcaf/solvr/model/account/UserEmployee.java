@@ -6,13 +6,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter
 @Setter
 public class UserEmployee {
     @Id
-    private int userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
     private String name;
     private String nip;
     private String email;

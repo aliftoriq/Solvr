@@ -17,11 +17,12 @@ public class JwtUtil {
 
     private final Key SECRET_KEY;
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
+//    private final long EXPIRATION_TIME = 1000 * 60;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        System.out.println("SECRET_KEY (Raw): " + secret);
+//        System.out.println("SECRET_KEY (Raw): " + secret);
         this.SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
-        System.out.println("SECRET_KEY (Base64 Encoded): " + SECRET_KEY);
+//        System.out.println("SECRET_KEY (Base64 Encoded): " + SECRET_KEY);
     }
 
     private Key getSigningKey() {
@@ -89,8 +90,8 @@ public class JwtUtil {
 
     // Validate token
     public boolean validateToken(String token, String username) {
-        System.out.println("Validating token for username: " + username);
-        System.out.println(username.equals(extractusername(token)) && !isTokenExpired(token));
+//        System.out.println("Validating token for username: " + username);
+//        System.out.println(username.equals(extractusername(token)) && !isTokenExpired(token));
         return username.equals(extractusername(token)) && !isTokenExpired(token);
     }
 
@@ -104,4 +105,5 @@ public class JwtUtil {
                 .getExpiration()
                 .before(new Date());
     }
+
 }

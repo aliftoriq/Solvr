@@ -1,8 +1,7 @@
 package id.co.bcaf.solvr.controller;
 
-import id.co.bcaf.solvr.dto.LoginRequest;
-import id.co.bcaf.solvr.dto.ResponseTemplate;
-import id.co.bcaf.solvr.dto.UserHttp;
+import id.co.bcaf.solvr.dto.*;
+import id.co.bcaf.solvr.model.account.Feature;
 import id.co.bcaf.solvr.model.account.User;
 import id.co.bcaf.solvr.services.AuthService;
 import id.co.bcaf.solvr.services.UserService;
@@ -14,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -34,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody RequestHttpDTO.LoginRequest loginRequest) {
         try {
             logger.info("Login attempt for username: {}", loginRequest.getUsername());
 
@@ -50,8 +51,11 @@ public class AuthController {
                         .body(new ResponseTemplate(401, "Invalid username or password", null));
             }
 
+
             logger.info("Successful login for username: {}", loginRequest.getUsername());
-            return ResponseEntity.ok(new ResponseTemplate(200, "Success", token));
+            return ResponseEntity.ok(new ResponseTemplate(200, "Success", new ResponseHttpDTO.LoginResponse(
+                    token,null)));
+
         } catch (Exception e) {
             logger.error("Login error", e);
             return ResponseEntity

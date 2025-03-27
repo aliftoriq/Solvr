@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -38,18 +39,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
 
-//        // Skip authentication for login and test endpoints
-//        if (requestURI.equals("/api/v1/auth/login") || requestURI.equals("/api/v1/auth/test")) {
-//            logger.debug("Skipping authentication for public endpoint: {}", requestURI);
-//            chain.doFilter(request, response);
-//            return;
-//        }
-
         // Check for Authorization header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
-//            logger.warn("Missing or invalid Authorization header for URI: {}", requestURI);
-//            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
             return;
         }
 
@@ -62,23 +54,28 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             logger.info("Extracted username from token: {}", username);
 
             if (jwtUtil.validateToken(token, username)) {
-
-                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+                System.out.println("- - - - - - - HALO " + role);
+                String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleWithPrefix));
 
                 logger.debug("Token validated for user: {}", username);
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
 
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
 
-                chain.doFilter(request, response);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             } else {
                 logger.warn("Invalid token for user: {}", username);
                 ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+                return;
             }
         } catch (Exception e) {
             logger.error("Error processing JWT token", e);
             ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token processing error: " + e.getMessage());
+            return;
         }
+
+        chain.doFilter(request, response);
     }
 }

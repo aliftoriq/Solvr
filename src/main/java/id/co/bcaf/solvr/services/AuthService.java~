@@ -46,16 +46,16 @@ public class AuthService {
         return null;
     }
 
-//    public  String getFeature(String username) {
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//        if (userOptional.isPresent()) {
-//            User user = userOptional.get();
-//
-//            Optional
-//
-//
-//            return ""
-//        }
-//        return null;
-//    }
+    public  String getFeature(String username) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            Optional
+
+
+            return ""
+        }
+        return null;
+    }
 }

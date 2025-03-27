@@ -18,11 +18,10 @@ public class LoanAplicationToEmployee {
 
     @ManyToOne(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "user_employee_id", nullable = false)
-
+    @JsonIgnore
     private UserEmployee userEmployee;
 
     @ManyToOne
-    @JsonIgnore
 //    @JoinColumn(name = "loan_application_id", nullable = false)
     private LoanApplication loanApplication;
 

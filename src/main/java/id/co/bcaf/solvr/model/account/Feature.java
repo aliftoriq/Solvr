@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,9 +16,10 @@ public class Feature {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
-
-    @ManyToMany()
-    private Set<Role> roles;
+//
+//    @OneToMany(mappedBy = "feature", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<RoleToFeature> roleToFeatures;
 
 }

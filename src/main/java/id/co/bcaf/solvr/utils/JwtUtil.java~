@@ -17,11 +17,12 @@ public class JwtUtil {
 
     private final Key SECRET_KEY;
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
+//    private final long EXPIRATION_TIME = 1000 * 60;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        System.out.println("SECRET_KEY (Raw): " + secret);
+//        System.out.println("SECRET_KEY (Raw): " + secret);
         this.SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
-        System.out.println("SECRET_KEY (Base64 Encoded): " + SECRET_KEY);
+//        System.out.println("SECRET_KEY (Base64 Encoded): " + SECRET_KEY);
     }
 
     private Key getSigningKey() {
@@ -76,9 +77,15 @@ public class JwtUtil {
                 .getBody();
     }
 
+    // Extract Role dari Token
     public String extractRole(String token) {
-        Claims claims = extractAllClaims(token);
-        return claims.get("role", String.class); // Mengambil role dari token
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    // Extract ID dari Token
+    public UUID extractId(String token) {
+        String idStr = extractAllClaims(token).get("id", String.class);
+        return UUID.fromString(idStr);
     }
 
     // Validate token
@@ -98,4 +105,5 @@ public class JwtUtil {
                 .getExpiration()
                 .before(new Date());
     }
+
 }

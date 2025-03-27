@@ -1,0 +1,28 @@
+package id.co.bcaf.solvr.controller;
+
+import id.co.bcaf.solvr.model.account.LoanApplication;
+import id.co.bcaf.solvr.services.LoanApplicationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/loan-application")
+public class LoanApplicationController {
+
+    private final LoanApplicationService loanApplicationService;
+
+    public LoanApplicationController(LoanApplicationService loanApplicationService){
+        this.loanApplicationService = loanApplicationService;
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createLoanApplication(@RequestBody LoanApplication loanApplication) {
+        return ResponseEntity.ok(loanApplicationService.createApplication(loanApplication));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllLoanApplication() {
+        return ResponseEntity.ok(loanApplicationService.getAllLoanApplication());
+    }
+
+}

@@ -7,14 +7,16 @@ import lombok.Setter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Setter
 @Getter
 @Entity
 public class UserCustomer {
     @Id
-    private int id;
-    private int customerId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
     private String nik;
     private String address;
     private String phone;
