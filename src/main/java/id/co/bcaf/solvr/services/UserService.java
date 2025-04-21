@@ -21,7 +21,6 @@ public class UserService {
     }
 
     public List<User> getAllUsers(String authHeader) {
-        String username = extractUsernameFromToken(authHeader);
         return userRepository.findAll();
     }
 
@@ -40,11 +39,15 @@ public class UserService {
         return new ResponseTemplate(200, "Success Deleted Data " + id, null);
     }
 
-    private String extractUsernameFromToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Invalid Authorization header");
-        }
-        String token = authHeader.substring(7);
-        return jwtUtil.extractusername(token);
+    public User getUserById(UUID id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+//    private String extractUsernameFromToken(String authHeader) {
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            throw new RuntimeException("Invalid Authorization header");
+//        }
+//        String token = authHeader.substring(7);
+//        return jwtUtil.extractusername(token);
+//    }
 }

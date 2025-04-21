@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,21 +20,33 @@ public class LoanApplication {
     private UUID id;
 
     @ManyToOne
-//    @JoinColumn(name = "user_customer_id", nullable = false)
+    @JoinColumn(name = "user_customer_id", nullable = false)
     private UserCustomer userCustomer;
 
-    @OneToMany(mappedBy = "loanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonIgnore
-    private List<LoanAplicationToEmployee> loanApplicationToEmployees;
+//    @OneToMany(mappedBy = "loanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
+////    @JsonIgnore
+//    private List<LoanApplicationToEmployee> loanApplicationToEmployees;
 
-    private double loanAmmount;
+    @OneToMany(mappedBy = "loanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LoanApplicationToEmployee> loanApplicationToEmployees = new ArrayList<>();
+
+    private double loanAmount;
     private int loanTenor;
-    private double montlyPayment;
-    private String status;
-    private String housing_status;
+    private double monthlyPayment;
+    private String status = "REQUESTED";
+    private String housingStatus;
 
     @OneToOne
+    @JsonIgnore
     private Loan loan;
 
+    private LocalDateTime requestedAt;
+    private LocalDateTime reviewedAt;
+    private LocalDateTime approvedAt;
+    private LocalDateTime disbursedAt;
 
+    @Column(nullable = true)
+    private Double longitude;
+    @Column(nullable = true)
+    private Double latitude;
 }

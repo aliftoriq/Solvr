@@ -1,6 +1,8 @@
 package id.co.bcaf.solvr.model.account;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,8 +24,13 @@ public class UserEmployee {
     private String department;
 
     @ManyToOne
-    Branch branch;
+    private Branch branch;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<LoanApplication> loanApplications;
+
+    @OneToOne(mappedBy = "userEmployee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private User user;
 }

@@ -25,9 +25,11 @@ public class UserCustomer {
     private String housingStatus;
     private Double monthlyIncome;
 
-    @ManyToOne
-    Branch branch;
-
     @OneToMany
     private Set<LoanApplication> loanApplications;
+
+    @ManyToOne
+    private PlafonPackage plafonPackage;
+
+    private Long totalPinjamanLunas;
 }

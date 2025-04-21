@@ -14,4 +14,11 @@ public class RequestHttpDTO {
         private String password;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static  class ForgetPasswordReset {
+        private String username;
+    }
+
 }

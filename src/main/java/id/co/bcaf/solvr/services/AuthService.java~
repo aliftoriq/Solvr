@@ -1,14 +1,29 @@
 package id.co.bcaf.solvr.services;
 
+import id.co.bcaf.solvr.dto.UserResponse;
+import id.co.bcaf.solvr.dto.auth.LoginResponse;
+import id.co.bcaf.solvr.model.account.Feature;
+import id.co.bcaf.solvr.model.account.PasswordToken;
+import id.co.bcaf.solvr.model.account.RoleToFeature;
 import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.repository.PasswordTokenRepository;
 import id.co.bcaf.solvr.repository.UserRepository;
 import id.co.bcaf.solvr.utils.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +35,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
+    private PasswordTokenRepository resetTokenRepository;
+    @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private JavaMailSender mailSender;
+    @Autowired
+    private BlacklistTokenService blacklistTokenService;
+    @Autowired
+    FeatureService featureService;
 
-    public String authenticateUser(String username, String password) {
+//    private ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();
+
+    public LoginResponse authenticateUser(String username, String password) {
         logger.info("Login attempt for : {}", username);
         Optional<User> userOptional = userRepository.findByUsername(username);
 
@@ -34,7 +58,18 @@ public class AuthService {
             logger.info("Successful login for user: {}", user.getUsername());
             if (passwordEncoder.matches(password, user.getPassword()))  {
                 logger.info("Correct password for ");
-                return jwtUtil.generateToken(username, user.getRole().getName(), user.getId());
+
+                List<RoleToFeature> roleToFeatures = featureService.getRoleToFeatureByRole(user.getRole());
+
+                List<String> features = roleToFeatures.stream()
+                        .map(RoleToFeature::getFeature)
+                        .map(Feature::getName)
+                        .collect(Collectors.toList());
+
+                return new LoginResponse(
+                        jwtUtil.generateToken(username, user.getRole().getName(), user.getId()),
+                        features,
+                        new UserResponse(user.getName(), user.getUsername(), user.getRole().getName(), user.getStatus(), user.isDeleted()));
             }
             else {
                 logger.warn("Wrong password for : {}", username);
@@ -46,16 +81,100 @@ public class AuthService {
         return null;
     }
 
-    public  String getFeature(String username) {
+    @Transactional
+    public String sendPasswordResetLink(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
+
         if (userOptional.isPresent()) {
             User user = userOptional.get();
 
-            Optional
+            resetTokenRepository.deleteByUserId(user.getId());
 
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
 
-            return ""
+            PasswordToken resetToken = new PasswordToken();
+            resetToken.setToken(token);
+            resetToken.setUser(user);
+            resetToken.setExpiryDate(expiry);
+
+            resetTokenRepository.save(resetToken);
+
+            String resetUrl = "https://solvr.com/reset-password?token=" + token;
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getUsername());
+            message.setSubject("Reset Password Request");
+            message.setText("Click the following link to reset your password:\n" + resetUrl + "\n\nThis link will expire in 15 minutes.");
+
+            mailSender.send(message);
+            logger.info("Password reset link sent to: {}", user.getUsername());
+
+            return "Reset link sent to your email.";
         }
-        return null;
+        return "User not found.";
     }
+
+    @Transactional
+    public String resetPassword(String token, String newPassword) {
+        Optional<PasswordToken> tokenOptional = resetTokenRepository.findByToken(token);
+
+        if (tokenOptional.isEmpty()) {
+            return "Invalid or expired token.";
+        }
+
+        PasswordToken resetToken = tokenOptional.get();
+
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            resetTokenRepository.delete(resetToken);
+            return "Token has expired.";
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        resetTokenRepository.delete(resetToken);
+
+        return "Password reset successfully.";
+    }
+
+    @Transactional
+    public String changePassword(UUID userId, String oldPassword, String newPassword) {
+            Optional<User> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isEmpty()) {
+                throw new NoSuchElementException("User dengan ID " + userId + " tidak ditemukan.");
+            }
+
+            User user = userOptional.get();
+
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                throw new IllegalArgumentException("Password lama salah.");
+            }
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return "Password berhasil diubah.";
+    }
+
+
+    public void logout(String token) {
+        blacklistTokenService.blacklistToken(token);
+    }
+
+
+//    public  String getFeature(String username) {
+//        Optional<User> userOptional = userRepository.findByUsername(username);
+//        if (userOptional.isPresent()) {
+//            User user = userOptional.get();
+//
+//            Optional
+//
+//
+//            return ""
+//        }
+//        return null;
+//    }
 }

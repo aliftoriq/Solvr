@@ -22,4 +22,6 @@ public class Loan {
     private Double sisa_pokok_hutang;
     private String status;
 
+
+
 }

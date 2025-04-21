@@ -1,0 +1,54 @@
+package id.co.bcaf.solvr.services;
+
+import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.model.account.UserEmployee;
+import id.co.bcaf.solvr.repository.UserEmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+import java.util.List;
+
+@Service
+public class UserEmployeeService {
+    @Autowired
+    private UserEmployeeRepository userEmployeeRepository;
+
+    @Autowired
+    private UserService userService;
+
+    public UserEmployee createUserEmployee(UUID userId, UserEmployee userEmployee) {
+        User user = userService.getUserById(userId);
+
+        UserEmployee savedUserEmployee = userEmployeeRepository.save(userEmployee);
+
+        user.setUserEmployee(userEmployee);
+        userService.updateUser(userId, user);
+
+        return savedUserEmployee;
+    }
+
+    public UserEmployee getUserEmployeeByUserId(UUID userId) {
+        User user = userService.getUserById(userId);
+        return user.getUserEmployee();
+    }
+
+    public UserEmployee updateUserEmployee(UUID userId, UserEmployee userEmployee) {
+        User user = userService.getUserById(userId);
+        UserEmployee savedUserEmployee = userEmployeeRepository.save(userEmployee);
+        user.setUserEmployee(userEmployee);
+        userService.updateUser(userId, user);
+        return savedUserEmployee;
+    }
+
+    public void deleteUserEmployee(UUID userId) {
+        User user = userService.getUserById(userId);
+        user.setUserEmployee(null);
+        userService.updateUser(userId, user);
+    }
+
+    public List<UserEmployee> getAllUserEmployee() {
+        return userEmployeeRepository.findAll();
+    }
+
+}

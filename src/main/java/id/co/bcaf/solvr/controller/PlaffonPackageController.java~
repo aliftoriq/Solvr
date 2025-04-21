@@ -1,0 +1,45 @@
+package id.co.bcaf.solvr.controller;
+
+import id.co.bcaf.solvr.dto.loan.PlafonPackageRequest;
+import id.co.bcaf.solvr.model.account.PlafonPackage;
+import id.co.bcaf.solvr.services.PlafonPackageService;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/plafon")
+public class PlaffonPackageController {
+    @Autowired
+    private PlafonPackageService plafonPackageService;
+
+    // ✅ Create plafon package
+    @PostMapping
+    public PlafonPackage create(@RequestBody PlafonPackageRequest dto) {
+        PlafonPackage plafon = new PlafonPackage();
+        plafon.setName(dto.getName());
+        plafon.setAmount(dto.getLimitAmount());
+        plafon.setMaxTenor(dto.getMaxTenor());
+        plafon.setMaxLoans(dto.getMaxLoans());
+        plafon.setInterestRate(dto.getInterestRate());
+
+        return plafonPackageService.createPlafonPackage(plafon);
+    }
+
+    // ✅ Get all plafon packages
+    @GetMapping
+    public List<PlafonPackageDto> getAll() {
+        return plafonPackageService.getAllPlafonPackages()
+                .stream()
+                .map(p -> {
+                    PlafonPackageDto dto = new PlafonPackageDto();
+                    dto.setName(p.getName());
+                    dto.setLimitAmount(p.getLimitAmount());
+                    dto.setMaxTenor(p.getMaxTenor());
+                    dto.setMaxLoans(p.getMaxLoans());
+                    dto.setInterestRate(p.getInterestRate());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+}

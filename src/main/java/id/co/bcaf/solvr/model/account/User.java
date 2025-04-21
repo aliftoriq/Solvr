@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.model.account;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLDelete;
@@ -37,6 +38,7 @@ public class User {
     private UserCustomer userCustomer;
 
     @OneToOne
+    @JsonManagedReference
     private UserEmployee userEmployee;
 
     private boolean deleted = Boolean.FALSE;

@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.security;
 
+import id.co.bcaf.solvr.services.BlacklistTokenService;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,6 +21,7 @@ import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -29,6 +32,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
+
+    @Autowired
+    private BlacklistTokenService blacklistTokenService;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -49,12 +55,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         try {
             String username = jwtUtil.extractusername(token);
+            UUID userId = jwtUtil.extractId(token);
+            request.setAttribute("userId", userId);
             String role = jwtUtil.extractRole(token);
 
             logger.info("Extracted username from token: {}", username);
 
+            if (blacklistTokenService.isTokenBlacklisted(token)) {
+                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token Blacklisted");
+                return;
+            }
+
             if (jwtUtil.validateToken(token, username)) {
-                System.out.println("- - - - - - - HALO " + role);
+                logger.info("Role Name : {}", role);
                 String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleWithPrefix));
 

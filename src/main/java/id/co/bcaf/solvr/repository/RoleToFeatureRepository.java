@@ -14,5 +14,6 @@ import java.util.UUID;
 
 @Repository
 public interface RoleToFeatureRepository extends JpaRepository<RoleToFeature, UUID> {
-    Optional<RoleToFeature> findByRole(Role role);
+    List<RoleToFeature> findByRole(Role role);
+    void deleteByRoleAndFeature(Role role, Feature feature);
 }

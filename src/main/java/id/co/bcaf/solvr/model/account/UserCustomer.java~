@@ -15,7 +15,7 @@ import java.util.UUID;
 public class UserCustomer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID customerId;
+    private UUID id;
 
     private String nik;
     private String address;
@@ -30,4 +30,9 @@ public class UserCustomer {
 
     @OneToMany
     private Set<LoanApplication> loanApplications;
+
+    @ManyToOne
+    private PlafonPackage plafonPackage;
+
+    private Long totalPinjamanLunas;
 }

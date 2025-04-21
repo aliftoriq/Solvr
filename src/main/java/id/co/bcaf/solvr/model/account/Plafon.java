@@ -16,6 +16,7 @@ public class Plafon {
     private UUID id;
 
     private double plafon;
+    private
 
     @OneToOne
     UserCustomer userCustomer;

@@ -11,19 +11,18 @@ import java.util.UUID;
 @Entity
 @Setter
 @Getter
-public class LoanAplicationToEmployee {
+public class LoanApplicationToEmployee {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "user_employee_id", nullable = false)
-
+    @ManyToOne
+    @JoinColumn(name = "user_employee_id", nullable = false)
     private UserEmployee userEmployee;
 
     @ManyToOne
     @JsonIgnore
-//    @JoinColumn(name = "loan_application_id", nullable = false)
+    @JoinColumn(name = "loan_application_id", nullable = false)
     private LoanApplication loanApplication;
 
     @Column(columnDefinition = "TEXT")

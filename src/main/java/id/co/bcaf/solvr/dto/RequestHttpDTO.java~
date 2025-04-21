@@ -13,4 +13,9 @@ public class RequestHttpDTO {
         private String username;
         private String password;
     }
+
+    public static  class ForgetPasswordReset {
+        private String username;
+    }
+
 }

@@ -1,9 +1,6 @@
 package id.co.bcaf.solvr.model.account;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,4 +15,9 @@ public class Branch {
     private UUID id;
     private String name;
 
+    @Column(nullable = true)
+    private double longitude;
+
+    @Column(nullable = true)
+    private double latitude;
 }

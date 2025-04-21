@@ -12,8 +12,8 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-//    @OneToMany
-//    private UserCustomer userCustomer;
+    @ManyToOne
+    private UserCustomer userCustomer;
 
     private Double ammount;
     private int tenor;
@@ -21,5 +21,7 @@ public class Loan {
     private Double angsuran;
     private Double sisa_pokok_hutang;
     private String status;
+
+      
 
 }

@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.controller;
 
+import id.co.bcaf.solvr.dto.ResponseTemplate;
 import id.co.bcaf.solvr.model.account.Role;
 import id.co.bcaf.solvr.services.RoleService;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,13 @@ public class RoleController {
 
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Role>> getAllRoles() {
-        return ResponseEntity.ok(roleService.getAllRoles());
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", roleService.getAllRoles()));
     }
 
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
+    public ResponseEntity<Role> getRoleById(@PathVariable int id) {
         return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
@@ -56,4 +57,6 @@ public class RoleController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
 }

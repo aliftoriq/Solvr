@@ -3,12 +3,16 @@ package id.co.bcaf.solvr.controller;
 import id.co.bcaf.solvr.dto.ResponseHttpDTO;
 import id.co.bcaf.solvr.dto.ResponseTemplate;
 import id.co.bcaf.solvr.dto.UserHttp;
+import id.co.bcaf.solvr.dto.feature.ManyRoleToFeatureRequest;
+import id.co.bcaf.solvr.dto.feature.RoleToFeatureRequest;
+import id.co.bcaf.solvr.dto.role.FeatureResponse;
 import id.co.bcaf.solvr.model.account.Feature;
 import id.co.bcaf.solvr.model.account.RoleToFeature;
 import id.co.bcaf.solvr.services.FeatureService;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,27 +27,15 @@ import java.util.stream.Collectors;
 public class FeatureController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    private final JwtUtil jwtUtil;
-    private final FeatureService featureService;
-
-
-    public FeatureController(JwtUtil jwtUtil, FeatureService featureService) {
-        this.featureService = featureService;
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private FeatureService featureService;
 
     @GetMapping
     public ResponseEntity<?> getFeature() {
 
-        List<Feature> features = featureService.getFeature();
+        List<FeatureResponse> features = featureService.getFeature();
 
-        List<String> featureNames = features.stream()
-                .map(Feature::getName)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(new ResponseTemplate(200, "Success", new ResponseHttpDTO.FeatureResponse(featureNames)));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", features));
     }
 
     @PostMapping
@@ -57,7 +49,19 @@ public class FeatureController {
     }
 
     @PostMapping("/role-to-feature")
-    public ResponseEntity<?> createRoleToFeature(@RequestBody RoleToFeature roleToFeature) {
+    public ResponseEntity<?> createRoleToFeature(@RequestBody RoleToFeatureRequest roleToFeature) {
         return ResponseEntity.ok(featureService.createRoleToFeature(roleToFeature));
+    }
+
+    @PostMapping("/role-to-feature/many")
+    public ResponseEntity<?> createRoleToFeatureMany(@RequestBody ManyRoleToFeatureRequest roleToFeature) {
+        featureService.createRoleToFeatureMany(roleToFeature);
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", null));
+    }
+
+    @DeleteMapping("/role-to-feature/many")
+    public ResponseEntity<?> deleteRoleToFeatureMany(@RequestBody ManyRoleToFeatureRequest roleToFeature) {
+        featureService.deleteRoleToFeatureMany(roleToFeature);
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", null));
     }
 }
