@@ -1,0 +1,16 @@
+package id.co.bcaf.solvr.dto.auth;
+
+import id.co.bcaf.solvr.dto.UserResponse;
+import lombok.*;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter @Setter
+public class LoginResponse {
+    private String token;
+    private List<String> features;
+    private UserResponse user;
+}

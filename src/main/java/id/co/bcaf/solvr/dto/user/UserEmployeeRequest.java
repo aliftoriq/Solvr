@@ -1,0 +1,20 @@
+package id.co.bcaf.solvr.dto.user;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserEmployeeRequest {
+    private String name;
+    private String nip;
+    private String email;
+    private String department;
+    private UUID branchId;
+    private int roleId;
+}

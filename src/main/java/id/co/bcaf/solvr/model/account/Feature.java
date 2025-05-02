@@ -1,28 +1,25 @@
 package id.co.bcaf.solvr.model.account;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
 public class Feature {
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false)
     private String name;
-
-    public Feature(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public int getId() {
-        return this.id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+//
+//    @OneToMany(mappedBy = "feature", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<RoleToFeature> roleToFeatures;
 
 }

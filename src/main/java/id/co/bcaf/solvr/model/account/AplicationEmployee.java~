@@ -1,0 +1,23 @@
+package id.co.bcaf.solvr.model.account;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+
+public class AplicationEmployee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_employee_id")
+    private UserEmployee userEmployee;
+
+    
+}

@@ -1,0 +1,27 @@
+package id.co.bcaf.solvr.model.account;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+
+public class Application {
+    @Id
+    private UUID id;
+    private UUID idPinjaman;
+    private UUID idUserCustomer;
+    private UUID idUserEmployee;
+    private double ammount;
+    private int tenor;
+    private double angsuran;
+    private int sisaTenor;
+    private double sisaPokoHutang;
+    private String status;
+
+}

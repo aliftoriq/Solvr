@@ -1,100 +1,40 @@
 package id.co.bcaf.solvr.model.account;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.Date;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
+@Setter
+@Getter
+@Entity
 public class UserCustomer {
-    private int id;
-    private int customerId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String nik;
     private String address;
     private String phone;
+    private String motherName;
+    private Date birthDate;
+    private String housingStatus;
+    private Double monthlyIncome;
 
-    public UserCustomer() {
-    }
+    @OneToMany
+    private Set<LoanApplication> loanApplications;
 
-    public UserCustomer(int id, int customerId, String address, String phone) {
-        this.id = id;
-        this.customerId = customerId;
-        this.address = address;
-        this.phone = phone;
-    }
+    @ManyToOne
+    private PlafonPackage plafonPackage;
 
-    public int getId() {
-        return this.id;
-    }
+    private Long totalPinjamanLunas;
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getCustomerId() {
-        return this.customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getAddress() {
-        return this.address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getPhone() {
-        return this.phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public UserCustomer id(int id) {
-        setId(id);
-        return this;
-    }
-
-    public UserCustomer customerId(int customerId) {
-        setCustomerId(customerId);
-        return this;
-    }
-
-    public UserCustomer address(String address) {
-        setAddress(address);
-        return this;
-    }
-
-    public UserCustomer phone(String phone) {
-        setPhone(phone);
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (!(o instanceof UserCustomer)) {
-            return false;
-        }
-        UserCustomer userCustomer = (UserCustomer) o;
-        return id == userCustomer.id && customerId == userCustomer.customerId
-                && Objects.equals(address, userCustomer.address) && Objects.equals(phone, userCustomer.phone);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, customerId, address, phone);
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                " id='" + getId() + "'" +
-                ", customerId='" + getCustomerId() + "'" +
-                ", address='" + getAddress() + "'" +
-                ", phone='" + getPhone() + "'" +
-                "}";
-    }
-
+    @OneToOne(mappedBy = "userCustomer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private User user;
 }

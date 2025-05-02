@@ -1,0 +1,235 @@
+package id.co.bcaf.solvr.services;
+
+import id.co.bcaf.solvr.dto.branch.BranchResponse;
+import id.co.bcaf.solvr.dto.role.RoleResponse;
+import id.co.bcaf.solvr.dto.user.UserEmployeeRequest;
+import id.co.bcaf.solvr.dto.user.UserEmployeeResponse;
+import id.co.bcaf.solvr.model.account.Branch;
+import id.co.bcaf.solvr.model.account.Role;
+import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.model.account.UserEmployee;
+import id.co.bcaf.solvr.repository.UserEmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.util.List;
+
+@Service
+public class UserEmployeeService {
+    @Autowired
+    private UserEmployeeRepository userEmployeeRepository;
+    @Autowired
+    private JavaMailSender mailSender;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private BranchService branchService;
+    @Autowired
+    private RoleService roleService;
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    public UserEmployeeResponse createUserEmployee(UserEmployeeRequest userEmployee) {
+        String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder rawPassword = new StringBuilder();
+
+        for (int i = 0; i < 12; i++) {
+            rawPassword.append(allowedChars.charAt(random.nextInt(allowedChars.length())));
+        }
+
+        String plainPassword = rawPassword.toString();
+
+        // Set Role
+        Role role = new Role();
+        role.setId(userEmployee.getRoleId());
+
+        // Set Branch
+        Branch branch = new Branch();
+        branch.setId(userEmployee.getBranchId());
+
+        // Buat UserEmployee terlebih dahulu
+        UserEmployee employee = new UserEmployee();
+        employee.setNip(userEmployee.getNip());
+        employee.setName(userEmployee.getName());
+        employee.setEmail(userEmployee.getEmail());
+        employee.setDepartment(userEmployee.getDepartment());
+        employee.setBranch(branch);
+
+        // Buat User dan assign ke UserEmployee
+        User user = new User();
+        user.setUsername(userEmployee.getNip());
+        user.setPassword(passwordEncoder.encode(rawPassword.toString()));
+        user.setName(userEmployee.getName());
+        user.setStatus("ACTIVE");
+        user.setRole(role);
+        user.setUserEmployee(employee); // penting untuk relasi dua arah
+
+        // Set relasi dua arah di UserEmployee
+        employee.setUser(user);
+
+        // Simpan UserEmployee (otomatis simpan User karena cascade)
+        UserEmployee savedUserEmployee = userEmployeeRepository.save(employee);
+        User savedUser = savedUserEmployee.getUser(); // sudah terisi karena cascade
+
+        // Buat response DTO
+        UserEmployeeResponse response = new UserEmployeeResponse();
+        response.setNip(savedUserEmployee.getNip());
+        response.setName(savedUser.getName());
+        response.setUsername(savedUser.getUsername());
+        response.setEmail(savedUser.getUserEmployee().getEmail());
+
+
+        response.setBranch(new BranchResponse(
+                savedUserEmployee.getBranch().getId(),
+                savedUserEmployee.getBranch().getName(),
+                savedUserEmployee.getBranch().getLatitude(),
+                savedUserEmployee.getBranch().getLongitude()));
+        response.setDepartment(savedUserEmployee.getDepartment());
+
+        RoleResponse roleResponse = new RoleResponse();
+        roleResponse.setId(savedUser.getRole().getId());
+        roleResponse.setName(savedUser.getRole().getName());
+        response.setRole(roleResponse);
+
+        // Kirim email dengan kredensial
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getUserEmployee().getEmail());
+        message.setSubject("New Account Created");
+        message.setText("Your new account has been created.\nUsername: " + user.getUsername() + "\nPassword: " + plainPassword);
+        mailSender.send(message);
+
+        return response;
+    }
+
+
+    public UserEmployeeResponse getUserEmployeeByUserId(UUID userId) {
+        User user = userService.getUserById(userId);
+
+        if (user.getUserEmployee() == null) {
+            throw new IllegalArgumentException("User ini bukan karyawan/employee");
+        }
+
+        UserEmployeeResponse userEmployeeResponse = new UserEmployeeResponse();
+        userEmployeeResponse.setName(user.getName());
+        userEmployeeResponse.setUsername(user.getUsername());
+
+        userEmployeeResponse.setRole(new RoleResponse(user.getRole().getId(), user.getRole().getName(), null));
+        userEmployeeResponse.setStatus(user.getStatus());
+        userEmployeeResponse.setDeleted(user.isDeleted());
+        userEmployeeResponse.setDepartment(user.getUserEmployee().getDepartment());
+        userEmployeeResponse.setNip(user.getUserEmployee().getNip());
+        userEmployeeResponse.setBranch(new BranchResponse(user.getUserEmployee().getBranch().getId(), user.getUserEmployee().getBranch().getName(), user.getUserEmployee().getBranch().getLatitude(), user.getUserEmployee().getBranch().getLongitude()));
+
+
+        return userEmployeeResponse;
+    }
+
+    public UserEmployeeResponse updateUserEmployee(UUID userId, UserEmployeeRequest userEmployeeRequest) {
+        UserEmployee userEmployee = userEmployeeRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("UserEmployee not found"));
+
+        User user = userEmployee.getUser();
+
+        if (user.getUserEmployee() == null) {
+            throw new IllegalArgumentException("User ini bukan karyawan/employee");
+        }
+
+        userEmployee.setNip(userEmployeeRequest.getNip());
+        userEmployee.setName(userEmployeeRequest.getName());
+        userEmployee.setEmail(userEmployeeRequest.getEmail());
+        userEmployee.setDepartment(userEmployeeRequest.getDepartment());
+
+        // Ambil branch dari service berdasarkan branchId
+        Branch branch = branchService.getBranchById(userEmployeeRequest.getBranchId());
+        userEmployee.setBranch(branch);
+
+        // Simpan perubahan data UserEmployee
+        UserEmployee savedUserEmployee = userEmployeeRepository.save(userEmployee);
+
+        // Update data User terkait
+        user.setName(userEmployeeRequest.getName());
+        user.setUsername(userEmployeeRequest.getNip());
+        user.setRole(roleService.getRoleById(userEmployeeRequest.getRoleId()));
+
+        user.setUserEmployee(savedUserEmployee);
+
+        // Simpan perubahan User
+        userService.updateUser(user.getId(), user);
+
+        // Buat response berdasarkan data yang telah diperbarui
+        UserEmployeeResponse response = new UserEmployeeResponse();
+        response.setNip(savedUserEmployee.getNip());
+        response.setName(savedUserEmployee.getName());
+        response.setUsername(savedUserEmployee.getUser().getUsername());
+        response.setEmail(savedUserEmployee.getEmail());
+        response.setBranch(new BranchResponse(
+                savedUserEmployee.getBranch().getId(),
+                savedUserEmployee.getBranch().getName(),
+                savedUserEmployee.getBranch().getLatitude(),
+                savedUserEmployee.getBranch().getLongitude()));
+        response.setDepartment(savedUserEmployee.getDepartment());
+        response.setRole(new RoleResponse(
+                savedUserEmployee.getUser().getRole().getId(),
+                savedUserEmployee.getUser().getRole().getName(),
+                null));
+        response.setStatus(savedUserEmployee.getUser().getStatus());
+        response.setDeleted(savedUserEmployee.getUser().isDeleted());
+
+        return response;
+    }
+
+    public void deleteUserEmployee(UUID userId) {
+        User user = userService.getUserById(userId);
+        user.setUserEmployee(null);
+        userService.updateUser(userId, user);
+    }
+
+    public List<UserEmployeeResponse> getAllUserEmployee() {
+        List<UserEmployee> userEmployees = userEmployeeRepository.findAll();
+        List<UserEmployeeResponse> responses = new ArrayList<>();
+
+        for (UserEmployee ue : userEmployees) {
+            User user = ue.getUser();
+            Branch branch = ue.getBranch();
+            Role role = user.getRole();
+
+            UserEmployeeResponse response = new UserEmployeeResponse();
+            response.setId(ue.getId());
+            response.setName(user.getName());
+            response.setUsername(user.getUsername());
+            response.setEmail(ue.getEmail());
+            response.setStatus(user.getStatus());
+            response.setDeleted(user.isDeleted());
+            response.setDepartment(ue.getDepartment());
+            response.setNip(ue.getNip());
+
+            if (branch != null) {
+                response.setBranch(new BranchResponse(
+                        branch.getId(),
+                        branch.getName(),
+                        branch.getLatitude(),
+                        branch.getLongitude()
+                ));
+            }
+
+            if (role != null) {
+                RoleResponse roleResponse = new RoleResponse();
+                roleResponse.setId(role.getId());
+                roleResponse.setName(role.getName());
+
+                response.setRole(roleResponse);
+            }
+
+            responses.add(response);
+        }
+
+        return responses;
+    }
+}

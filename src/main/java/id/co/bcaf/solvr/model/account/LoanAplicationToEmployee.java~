@@ -1,0 +1,31 @@
+package id.co.bcaf.solvr.model.account;
+
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Setter
+@Getter
+public class LoanAplicationToEmployee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "user_employee_id", nullable = false)
+    @JsonIgnore
+    private UserEmployee userEmployee;
+
+    @ManyToOne
+//    @JoinColumn(name = "loan_application_id", nullable = false)
+    private LoanApplication loanApplication;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+}

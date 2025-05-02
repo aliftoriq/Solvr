@@ -1,0 +1,21 @@
+package id.co.bcaf.solvr.dto.auth;
+
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+
+public class LoginRequest {
+    @JsonProperty
+    @NotBlank
+    private String username;
+
+    @NotBlank
+    private String password;
+
+
+}

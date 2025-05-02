@@ -1,0 +1,15 @@
+package id.co.bcaf.solvr.dto.role;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ManyRoleToFeatureRequest {
+    private UUID role_id;
+    private List<UUID> feature_id;
+}
