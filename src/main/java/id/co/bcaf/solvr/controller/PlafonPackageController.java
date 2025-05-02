@@ -17,7 +17,6 @@ public class PlafonPackageController {
     @Autowired
     private PlafonPackageService plafonPackageService;
 
-    // ✅ Create plafon package
     @PostMapping
     public ResponseEntity<?> create(@RequestBody PlafonPackageRequest dto) {
         PlafonPackage plafon = new PlafonPackage();
@@ -37,5 +36,26 @@ public class PlafonPackageController {
         List<PlafonPackage> result = plafonPackageService.getAllPlafonPackages();
 
         return ResponseEntity.ok(new ResponseTemplate(200, "Succes",result));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PlafonPackageRequest dto) {
+        PlafonPackage plafon = new PlafonPackage();
+        plafon.setId(id);
+        plafon.setName(dto.getName());
+        plafon.setAmount(dto.getAmount());
+        plafon.setLevel(dto.getLevel());
+        plafon.setMaxTenorMonths(dto.getMaxTenorMonths());
+        plafon.setInterestRate(dto.getInterestRate());
+
+        PlafonPackage result = plafonPackageService.updatePlafonPackage(plafon);
+
+        return ResponseEntity.ok(new ResponseTemplate(200, "Succes",result));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        plafonPackageService.deletePlafonPackage(id);
+        return ResponseEntity.ok(new ResponseTemplate(200, "Succes",null));
     }
 }

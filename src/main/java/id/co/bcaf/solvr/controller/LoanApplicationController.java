@@ -43,6 +43,17 @@ public class LoanApplicationController {
         return ResponseEntity.ok(loanApplicationService.getAllApplications());
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<?> getLoanApplicationById(@PathVariable UUID id) {
+        return ResponseEntity.ok(loanApplicationService.getApplicationById(id));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getAllLoanApplicationHistory(HttpServletRequest request) {
+        UUID userId = (UUID) request.getAttribute("userId");
+        return ResponseEntity.ok(loanApplicationService.getAllLoanApplicationHistory(userId));
+    }
+
     @GetMapping("/marketing")
     public ResponseEntity<?> getAllLoanApplicationByUserId(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
@@ -53,6 +64,12 @@ public class LoanApplicationController {
     public ResponseEntity<?> getAllLoanApplicationBranchManager(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
         return ResponseEntity.ok(loanApplicationService.getAllCustomerBranchManager(userId));
+    }
+
+    @GetMapping("/backoffice")
+    public ResponseEntity<?> getAllLoanApplicationBackOffice(HttpServletRequest request) {
+        UUID userId = (UUID) request.getAttribute("userId");
+        return ResponseEntity.ok(loanApplicationService.getAllCustomerBackOffice(userId));
     }
 
     @PutMapping("/{id}/review")
@@ -87,6 +104,19 @@ public class LoanApplicationController {
         try {
             LoanApplication reviewed = loanApplicationService.disburseLoanApplication(userId, id, notes.getNotes());
             return ResponseEntity.ok(new ResponseTemplate<>(200, "Loan application Disburse.", reviewed));
+        }catch (Exception e) {
+            ResponseTemplate<LoanApplication> errorResponse = new ResponseTemplate<>(500, "Terjadi kesalahan: " + e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<?> rejectLoanApplication(HttpServletRequest request, @PathVariable UUID id, @RequestBody StatusRequest notes) {
+        UUID userId = (UUID) request.getAttribute("userId");
+        try {
+            LoanApplication reviewed = loanApplicationService.rejectLoanApplication(userId, id, notes.getNotes());
+            return ResponseEntity.ok(new ResponseTemplate<>(200, "Loan application rejected.", reviewed));
         }catch (Exception e) {
             ResponseTemplate<LoanApplication> errorResponse = new ResponseTemplate<>(500, "Terjadi kesalahan: " + e.getMessage(), null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);

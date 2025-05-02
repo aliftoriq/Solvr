@@ -43,7 +43,7 @@ public class BranchService {
         return R * c;
     }
 
-    public void deleteBranch(UUID id) {
+    private void deleteBranch(UUID id) {
         branchRepository.deleteById(id);
     }
 }

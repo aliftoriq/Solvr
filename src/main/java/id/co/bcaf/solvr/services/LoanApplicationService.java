@@ -1,5 +1,10 @@
 package id.co.bcaf.solvr.services;
 
+import id.co.bcaf.solvr.dto.branch.BranchResponse;
+import id.co.bcaf.solvr.dto.loan.LoanApplicationResponse;
+import id.co.bcaf.solvr.dto.role.RoleResponse;
+import id.co.bcaf.solvr.dto.user.UserCustomerResponse;
+import id.co.bcaf.solvr.dto.user.UserEmployeeResponse;
 import id.co.bcaf.solvr.model.account.*;
 import id.co.bcaf.solvr.repository.LoanApplicationRepository;
 import id.co.bcaf.solvr.repository.LoanApplicationToEmployeeRepository;
@@ -10,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -134,6 +136,102 @@ public class LoanApplicationService {
         return loanApplicationRepository.findAll();
     }
 
+    public LoanApplicationResponse getApplicationById(UUID id) {
+        LoanApplication loanApplication = loanApplicationRepository.findById(id).orElse(null);
+
+        LoanApplicationResponse response = new LoanApplicationResponse();
+
+        response.setId(loanApplication.getId());
+        response.setLoanAmount(loanApplication.getLoanAmount());
+        response.setLoanTenor(loanApplication.getLoanTenor());
+        response.setStatus(loanApplication.getStatus());
+        response.setRequestedAt(loanApplication.getRequestedAt());
+        response.setApprovedAt(loanApplication.getApprovedAt());
+
+        UserCustomerResponse userCustomer = new UserCustomerResponse();
+
+        userCustomer.setId(loanApplication.getUserCustomer().getId());
+        userCustomer.setName(loanApplication.getUserCustomer().getUser().getName());
+        userCustomer.setNik(loanApplication.getUserCustomer().getNik());
+        userCustomer.setAddress(loanApplication.getUserCustomer().getAddress());
+        userCustomer.setBirthDate(loanApplication.getUserCustomer().getBirthDate());
+        userCustomer.setHousingStatus(loanApplication.getUserCustomer().getHousingStatus());
+        userCustomer.setPhone(loanApplication.getUserCustomer().getPhone());
+        userCustomer.setMotherName(loanApplication.getUserCustomer().getMotherName());
+        userCustomer.setMonthlyIncome(loanApplication.getUserCustomer().getMonthlyIncome());
+        userCustomer.setTotalPinjamanLunas(loanApplication.getUserCustomer().getTotalPinjamanLunas());
+
+        response.setUserCustomer(userCustomer);
+
+        List<UserEmployeeResponse> employees = new ArrayList<>();
+
+        for (LoanApplicationToEmployee lae : loanApplication.getLoanApplicationToEmployees()) {
+            UserEmployee userEmployee = lae.getUserEmployee();
+
+            UserEmployeeResponse employee = new UserEmployeeResponse();
+            employee.setId(userEmployee.getId());
+            employee.setName(userEmployee.getUser().getName());
+            employee.setEmail(userEmployee.getEmail());
+            employee.setStatus(userEmployee.getUser().getStatus());
+            employee.setRole(new RoleResponse(userEmployee.getUser().getRole().getId(), userEmployee.getUser().getRole().getName(), null));
+            employee.setNip(userEmployee.getNip());
+            employee.setBranch(new BranchResponse(userEmployee.getBranch().getId(), userEmployee.getBranch().getName(), userEmployee.getBranch().getLatitude(), userEmployee.getBranch().getLongitude()));
+            employee.setDepartment(userEmployee.getDepartment());
+
+            String role = userEmployee.getUser().getRole().getName();
+
+            if (role.equalsIgnoreCase("MARKETING")) {
+                response.setMarketingNotes(lae.getNotes());
+            } else if (role.equalsIgnoreCase("BRANCH MANAGER")) {
+                response.setBranchManagerNotes(lae.getNotes());
+            } else if (role.equalsIgnoreCase("BACK OFFICE")) {
+                response.setBackOfficeNotes(lae.getNotes());
+            }
+
+            employees.add(employee);
+        }
+
+        response.setUserEmployee(employees);
+
+        return response;
+    }
+
+    public List<LoanApplication> getAllLoanApplicationHistory(UUID userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
+        }
+
+        UserEmployee userEmployee = user.getUserEmployee();
+        if (userEmployee == null) {
+            throw new IllegalArgumentException("User ini bukan karyawan/employee");
+        }
+
+        UUID employeeId = userEmployee.getId();
+
+        List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
+
+        if (Objects.equals(user.getRole().getName(), "MARKETING")) {
+            return requestedLoans.stream()
+                    .filter(loan -> !"REQUEST".equals(loan.getStatus()))
+                    .collect(Collectors.toList());
+        }
+
+        if ("BRANCH MANAGER".equals(user.getRole().getName())) {
+            return requestedLoans.stream()
+                    .filter(loan -> !"APPROVED".equals(loan.getStatus()) && !"REQUEST".equals(loan.getStatus()))
+                    .collect(Collectors.toList());
+        }
+
+        if ("BACK OFFICE".equals(user.getRole().getName())) {
+            return requestedLoans.stream()
+                    .filter(loan -> !"DISBURSE".equals(loan.getStatus()) && !"APPROVED".equals(loan.getStatus()) && !"REQUEST".equals(loan.getStatus()))
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
     public List<LoanApplication> getAllCustomerMarketing(UUID userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
@@ -150,11 +248,32 @@ public class LoanApplicationService {
         List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
 
         // Filter to keep only REQUEST status
-        List<LoanApplication> result = requestedLoans.stream()
+
+        return requestedLoans.stream()
                 .filter(loan -> "REQUEST".equals(loan.getStatus()))
                 .collect(Collectors.toList());
+    }
 
-        return result;
+    public List<LoanApplication> getAllCustomerBackOffice(UUID userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
+        }
+
+        UserEmployee userEmployee = user.getUserEmployee();
+        if (userEmployee == null) {
+            throw new IllegalArgumentException("User ini bukan karyawan/employee");
+        }
+
+        UUID employeeId = userEmployee.getId();
+
+        List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
+
+        // Filter to keep only REQUEST status
+
+        return requestedLoans.stream()
+                .filter(loan -> "APPROVED".equals(loan.getStatus()))
+                .collect(Collectors.toList());
     }
 
     public List<LoanApplication> getAllCustomerBranchManager(UUID userId) {
@@ -173,11 +292,10 @@ public class LoanApplicationService {
         List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
 
         // Filter to keep only REQUEST status
-        List<LoanApplication> result = requestedLoans.stream()
+
+        return requestedLoans.stream()
                 .filter(loan -> "REVIEWED".equals(loan.getStatus()))
                 .collect(Collectors.toList());
-
-        return result;
     }
 
 
@@ -234,6 +352,28 @@ public class LoanApplicationService {
 
         loanApplication.setStatus("DISBURSEMENT");
         loanApplication.setDisbursedAt(LocalDateTime.now());
+
+        UUID userEmployeeId = userService.getUserById(userId).getUserEmployee().getId();
+
+        LoanApplicationToEmployee lae = loanApplication.getLoanApplicationToEmployees().stream()
+                .filter(l -> l.getUserEmployee().getId().equals(userEmployeeId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("LAE tidak ditemukan untuk employee ID: " + userEmployeeId));
+
+
+        // Atau langsung update:
+        lae.setNotes(notes);
+        loanAplicationToEmployeeRepository.save(lae);
+
+        return loanApplicationRepository.save(loanApplication);
+    }
+
+    @Transactional
+    public LoanApplication rejectLoanApplication(UUID userId, UUID loanAppId, String notes) {
+        LoanApplication loanApplication = loanApplicationRepository.findById(loanAppId)
+                .orElseThrow(() -> new EntityNotFoundException("LoanApplication dengan ID " + loanAppId + " tidak ditemukan"));
+
+        loanApplication.setStatus("REJECTED");
 
         UUID userEmployeeId = userService.getUserById(userId).getUserEmployee().getId();
 

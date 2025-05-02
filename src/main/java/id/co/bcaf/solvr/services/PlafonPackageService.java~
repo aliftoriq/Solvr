@@ -19,12 +19,4 @@ public class PlafonPackageService {
     public List<PlafonPackage> getAllPlafonPackages() {
         return plafonPackageRepository.findAll();
     }
-
-    public PlafonPackage updatePlafonPackage(PlafonPackage plafonPackage) {
-        return plafonPackageRepository.save(plafonPackage);
-    }
-
-    public void deletePlafonPackage(Long id) {
-        plafonPackageRepository.deleteById(id);
-    }
 }

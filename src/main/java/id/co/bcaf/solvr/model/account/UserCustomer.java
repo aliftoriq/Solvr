@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.model.account;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,4 +33,8 @@ public class UserCustomer {
     private PlafonPackage plafonPackage;
 
     private Long totalPinjamanLunas;
+
+    @OneToOne(mappedBy = "userCustomer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private User user;
 }

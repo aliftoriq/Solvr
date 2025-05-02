@@ -1,6 +1,7 @@
 package id.co.bcaf.solvr.security;
 
 import id.co.bcaf.solvr.services.BlacklistTokenService;
+import id.co.bcaf.solvr.services.FeatureService;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,6 +37,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     @Autowired
     private BlacklistTokenService blacklistTokenService;
 
+    @Autowired
+    private FeatureService featureService;
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -68,6 +72,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
             if (jwtUtil.validateToken(token, username)) {
                 logger.info("Role Name : {}", role);
+//                List<String> features = featureService.getFeatureByRole(role);
                 String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleWithPrefix));
 
