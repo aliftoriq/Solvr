@@ -1,5 +1,7 @@
 spring.application.name=solvr
 
+
+
 # Database Config
 spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=solvr;encrypt=true;trustServerCertificate=true
 spring.datasource.username=sa
@@ -11,7 +13,7 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 jwt.secret=halonamasayaalifnasdnasfkaskfakhbanfbasfbashfasbfasbfkjafkforanginiadalahkunciyangtidakbisadisolvesamaorangjadikamusuka
 
-spring.mail.host=smtp.mailosaur.net
+spring.mail.host=sandbox.smtp.mailtrap.io
 spring.mail.port=2525
 spring.mail.username=745b4873b1740d
 spring.mail.password=0bef3bc50de5e4
