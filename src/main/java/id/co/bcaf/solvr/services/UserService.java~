@@ -24,7 +24,7 @@ public class UserService {
     public List<User> getAllUsers(String authHeader) {
         return userRepository.findAll();
     }
-
+    
     public User createUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new CustomException.UserAlreadyExists("User already exists");
@@ -32,6 +32,7 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
 
 
     public ResponseTemplate updateUser(UUID id, User user) {
