@@ -26,6 +26,10 @@ public class BranchService {
     public Branch getNearestBranch(double latitude, double longitude) {
         List<Branch> allBranch = branchRepository.findAll();
 
+        if(allBranch.isEmpty()) {
+            throw new RuntimeException("Branch is empty");
+        }
+
         return allBranch.stream()
                 .min(Comparator.comparingDouble(branch ->
                         haversineDistance(latitude, longitude, branch.getLatitude(), branch.getLongitude())))
@@ -43,7 +47,7 @@ public class BranchService {
         return R * c;
     }
 
-    private void deleteBranch(UUID id) {
+    public void deleteBranch(UUID id) {
         branchRepository.deleteById(id);
     }
 }

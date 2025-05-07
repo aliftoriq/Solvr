@@ -422,7 +422,7 @@ public class LoanApplicationService {
             throw new IllegalArgumentException("Amount exceeds available plafon");
         }
 
-        double ratePerMonth = plafon.getInterestRate() / 12 / 100;
+        double ratePerMonth = plafon.getInterestRate() / 12 / 100; 
         double amount = request.getLoanAmount();
         int tenor = request.getLoanTenor();
 

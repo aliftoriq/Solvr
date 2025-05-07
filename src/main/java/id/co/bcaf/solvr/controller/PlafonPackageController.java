@@ -30,7 +30,7 @@ public class PlafonPackageController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Succes",result));
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<?> getAll() {
 
         List<PlafonPackage> result = plafonPackageService.getAllPlafonPackages();

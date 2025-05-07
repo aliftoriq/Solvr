@@ -50,6 +50,9 @@ public class JwtUtil {
     // Get username from token
     public String extractusername(String token) {
         try {
+            // Debugging token sebelum diproses
+            System.out.println("Received Token: [" + token + "]");
+
             return Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()

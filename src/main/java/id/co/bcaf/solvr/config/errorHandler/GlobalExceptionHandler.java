@@ -24,6 +24,16 @@ public class GlobalExceptionHandler {
         ), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(CustomException.InvalidInputException.class)
+    public ResponseEntity<ResponseTemplate> handleInvalidInputException(CustomException.InvalidInputException ex) {
+        logger.warn("Invalid input: {}", ex.getMessage());
+        return new ResponseEntity<>(new ResponseTemplate(
+                400,
+                "Bad Request: " + ex.getMessage(),
+                null
+        ), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(CustomException.UserNotFoundException.class)
     public ResponseEntity<ResponseTemplate> handleUserNotFoundException(CustomException.UserNotFoundException ex) {
         logger.warn("User not found: {}", ex.getMessage());
@@ -43,5 +53,15 @@ public class GlobalExceptionHandler {
                 "Bad Request: " + ex.getMessage(),
                 null
         ), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CustomException.UserAlreadyExists.class)
+    public ResponseEntity<ResponseTemplate> handleUserAlreadyExists(CustomException.UserAlreadyExists ex) {
+        logger.warn("User already exists: {}", ex.getMessage());
+        return new ResponseEntity<>(new ResponseTemplate(
+                409,
+                "Conflict: " + ex.getMessage(),
+                null
+        ), HttpStatus.CONFLICT);
     }
 }
