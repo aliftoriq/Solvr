@@ -1,4 +1,4 @@
 package id.co.bcaf.solvr.model.account;
 
-public class RoleToFeature {
+public class Role {
 }
