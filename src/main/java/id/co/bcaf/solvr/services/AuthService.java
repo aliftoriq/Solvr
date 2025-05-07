@@ -56,7 +56,7 @@ public class AuthService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             logger.info("Successful login for user: {}", user.getUsername());
-            if (passwordEncoder.matches(password, user.getPassword()))  {
+            if (passwordEncoder.matches(password, user.getPassword())) {
                 logger.info("Correct password for ");
 
                 List<RoleToFeature> roleToFeatures = featureService.getRoleToFeatureByRole(user.getRole());
@@ -70,12 +70,10 @@ public class AuthService {
                         jwtUtil.generateToken(username, user.getRole().getName(), user.getId()),
                         features,
                         new UserResponse(user.getName(), user.getUsername(), user.getRole().getName(), user.getStatus(), user.isDeleted()));
-            }
-            else {
+            } else {
                 logger.warn("Wrong password for : {}", username);
             }
-        }
-        else {
+        } else {
             logger.warn("User not found: {}", username);
         }
         return null;
@@ -85,34 +83,33 @@ public class AuthService {
     public String sendPasswordResetLink(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            resetTokenRepository.deleteByUserId(user.getId());
-
-            String token = UUID.randomUUID().toString();
-            LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
-
-            PasswordToken resetToken = new PasswordToken();
-            resetToken.setToken(token);
-            resetToken.setUser(user);
-            resetToken.setExpiryDate(expiry);
-
-            resetTokenRepository.save(resetToken);
-
-            String resetUrl = "https://solvr.com/reset-password?token=" + token;
-
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(user.getUsername());
-            message.setSubject("Reset Password Request");
-            message.setText("Click the following link to reset your password:\n" + resetUrl + "\n\nThis link will expire in 15 minutes.");
-
-            mailSender.send(message);
-            logger.info("Password reset link sent to: {}", user.getUsername());
-
-            return "Reset link sent to your email.";
+        if (userOptional.isEmpty()) {
+            throw new NoSuchElementException("User not found.");
         }
-        return "User not found.";
+
+        User user = userOptional.get();
+
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
+
+        PasswordToken resetToken = new PasswordToken();
+        resetToken.setToken(token);
+        resetToken.setUser(user);
+        resetToken.setExpiryDate(expiry);
+
+        resetTokenRepository.save(resetToken);
+
+        String resetUrl = "https://solvr.com/reset-password?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getUsername());
+        message.setSubject("Reset Password Request");
+        message.setText("Click the following link to reset your password:\n" + resetUrl + "\n\nThis link will expire in 15 minutes.");
+
+        mailSender.send(message);
+        logger.info("Password reset link sent to: {}", user.getUsername());
+
+        return "Reset link sent to your email.";
     }
 
     @Transactional
@@ -120,14 +117,15 @@ public class AuthService {
         Optional<PasswordToken> tokenOptional = resetTokenRepository.findByToken(token);
 
         if (tokenOptional.isEmpty()) {
-            return "Invalid or expired token.";
+            logger.warn("Invalid or expired token.");
+            throw new IllegalArgumentException("Invalid or expired token.");
         }
 
         PasswordToken resetToken = tokenOptional.get();
 
         if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             resetTokenRepository.delete(resetToken);
-            return "Token has expired.";
+            throw new IllegalArgumentException("Token expired.");
         }
 
         User user = resetToken.getUser();

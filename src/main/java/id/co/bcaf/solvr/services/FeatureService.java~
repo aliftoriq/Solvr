@@ -62,7 +62,7 @@ public class FeatureService {
 
         Feature feature = featureRepository.findById(roleToFeature.getFeatureId())
                 .orElseThrow(() -> new IllegalArgumentException("Feature ID not found: " + roleToFeature.getFeatureId()));
-
+        
         roleToFeatureRes.setFeature(feature);
         roleToFeatureRes.setRole(roleService.getRoleById(roleToFeature.getRoleId()));
 

@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.services;
 
+import id.co.bcaf.solvr.config.errorHandler.CustomException;
 import id.co.bcaf.solvr.dto.ResponseTemplate;
 import id.co.bcaf.solvr.model.account.User;
 import id.co.bcaf.solvr.repository.UserRepository;
@@ -25,8 +26,14 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        User isUser = userRepository.findByUsername(user.getUsername()).get();
+        if (isUser != null) {
+            throw new CustomException.UserAlreadyExists("User already exists");
+        }
+
         return userRepository.save(user);
     }
+
 
     public ResponseTemplate updateUser(UUID id, User user) {
         user.setId(id);

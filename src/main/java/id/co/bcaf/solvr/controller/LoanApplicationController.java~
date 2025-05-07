@@ -1,7 +1,6 @@
 package id.co.bcaf.solvr.controller;
 
 import id.co.bcaf.solvr.dto.ResponseTemplate;
-import id.co.bcaf.solvr.dto.loan.SimulationRequest;
 import id.co.bcaf.solvr.dto.loan.StatusRequest;
 import id.co.bcaf.solvr.model.account.LoanApplication;
 import id.co.bcaf.solvr.services.LoanApplicationService;
@@ -123,12 +122,6 @@ public class LoanApplicationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
 
-    }
-
-    @PostMapping("/calculate")
-    public ResponseEntity<?> calculateLoanApplication(HttpServletRequest request, @RequestBody SimulationRequest simulationRequest) {
-        UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(loanApplicationService.calculateSimulation(userId, simulationRequest));
     }
 
 }
