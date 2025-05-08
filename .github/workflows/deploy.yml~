@@ -26,8 +26,8 @@ jobs:
             pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
 
             echo "📥 Pulling latest code..."
-            sudo git reset --hard
-            sudo git pull origin main
+            git reset --hard
+            git pull origin main
 
             echo "🧹 Building the app..."
             sudo mvn clean package -DskipTests
