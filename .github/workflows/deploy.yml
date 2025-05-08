@@ -16,19 +16,21 @@ jobs:
       - name: 🐧 Set up SSH and deploy to VM
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 34.170.91.53
-          username: milyas
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            cd ~/Solvr
+            cd ~/Solvr || { echo "❌ Directory Solvr not found"; exit 1; }
+
             echo "🔪 Killing existing app..."
-            sudo pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
-            
+            pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
+
             echo "📥 Pulling latest code..."
-            sudo git pull origin main
-            
+            git reset --hard
+            git pull origin main
+
             echo "🧹 Building the app..."
-            sudo mvn clean package -DskipTests
-            
+            mvn clean package -DskipTests
+
             echo "🚀 Running the app in background..."
-            sudo nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
+            nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
