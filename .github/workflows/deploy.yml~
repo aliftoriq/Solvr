@@ -19,6 +19,7 @@ jobs:
           host: 34.170.91.53
           username: milyas
           key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
           script: |
             cd ~/Solvr
             echo "🔪 Killing existing app..."
