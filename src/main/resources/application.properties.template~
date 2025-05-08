@@ -1,6 +1,6 @@
 spring.application.name=solvr
 
-#TES CI CD tes chmod update
+#TES CI CD tes chmod update s
 
 # Database Config
 spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=solvr;encrypt=true;trustServerCertificate=true
