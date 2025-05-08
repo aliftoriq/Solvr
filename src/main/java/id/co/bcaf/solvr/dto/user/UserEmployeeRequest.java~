@@ -16,5 +16,5 @@ public class UserEmployeeRequest {
     private String email;
     private String department;
     private UUID branchId;
-    private Int roleId;
+    private int roleId;
 }

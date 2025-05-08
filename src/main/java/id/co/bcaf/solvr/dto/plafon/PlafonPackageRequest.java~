@@ -1,8 +1,6 @@
-package id.co.bcaf.solvr.dto.loan;
+package id.co.bcaf.solvr.dto.plafon;
 
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 @Data
 public class PlafonPackageRequest {

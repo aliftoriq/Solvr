@@ -1,7 +1,7 @@
 package id.co.bcaf.solvr.controller;
 
 import id.co.bcaf.solvr.dto.ResponseTemplate;
-import id.co.bcaf.solvr.dto.loan.PlafonPackageRequest;
+import id.co.bcaf.solvr.dto.plafon.PlafonPackageRequest;
 import id.co.bcaf.solvr.model.account.PlafonPackage;
 import id.co.bcaf.solvr.services.PlafonPackageService;
 import org.springframework.beans.factory.annotation.*;

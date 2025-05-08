@@ -1,12 +1,12 @@
 package id.co.bcaf.solvr.model.account;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,14 +25,14 @@ public class UserCustomer {
     private Date birthDate;
     private String housingStatus;
     private Double monthlyIncome;
+    private String accountNumber;
+    private Long totalPaidLoan;
 
     @OneToMany
     private Set<LoanApplication> loanApplications;
 
     @ManyToOne
     private PlafonPackage plafonPackage;
-
-    private Long totalPinjamanLunas;
 
     @OneToOne(mappedBy = "userCustomer", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference

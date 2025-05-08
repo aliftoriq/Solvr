@@ -24,6 +24,10 @@ public class PlafonPackageService {
         return plafonPackageRepository.save(plafonPackage);
     }
 
+    public PlafonPackage getPlafonPackageByLevel(Integer level) {
+        return plafonPackageRepository.findByLevel(level);
+    }
+
     public void deletePlafonPackage(Long id) {
         plafonPackageRepository.deleteById(id);
     }

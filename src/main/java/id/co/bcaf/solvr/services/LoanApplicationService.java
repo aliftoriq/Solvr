@@ -177,7 +177,7 @@ public class LoanApplicationService {
         userCustomer.setPhone(loanApplication.getUserCustomer().getPhone());
         userCustomer.setMotherName(loanApplication.getUserCustomer().getMotherName());
         userCustomer.setMonthlyIncome(loanApplication.getUserCustomer().getMonthlyIncome());
-        userCustomer.setTotalPinjamanLunas(loanApplication.getUserCustomer().getTotalPinjamanLunas());
+        userCustomer.setTotalPaidLoan(loanApplication.getUserCustomer().getTotalPaidLoan());
 
         response.setUserCustomer(userCustomer);
 

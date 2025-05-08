@@ -41,7 +41,7 @@ public class UserCustomerController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", userCustomerService.createUserCustomer(userCustomer, userId)));
     }
 
-    @PutMapping()
+    @PutMapping("/update")
     public ResponseEntity<?> updateUserCustomer(HttpServletRequest request, @RequestBody UserCustomerRequest userCustomer) {
         UUID userId = (UUID) request.getAttribute("userId");
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", userCustomerService.updateUserCustomer(userId, userCustomer)));

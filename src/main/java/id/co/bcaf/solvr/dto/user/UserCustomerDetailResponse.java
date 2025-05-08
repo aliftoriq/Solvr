@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.dto.user;
 
+import id.co.bcaf.solvr.dto.plafon.PlafonPackageResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,10 +8,12 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.UUID;
 
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCustomerResponse {
+public class UserCustomerDetailResponse {
     private UUID id;
     private String name;
     private String nik;
@@ -22,4 +25,5 @@ public class UserCustomerResponse {
     private Double monthlyIncome;
     private Long totalPaidLoan;
     private String accountNumber;
+    private PlafonPackageResponse plafonPackage;
 }

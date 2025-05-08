@@ -1,0 +1,34 @@
+name: Deploy to VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🐧 Set up SSH and deploy to VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 34.170.91.53
+          username: milyas
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd ~/Solvr
+            echo "🔪 Killing existing app..."
+            pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
+            
+            echo "📥 Pulling latest code..."
+            git pull origin main
+            
+            echo "🧹 Building the app..."
+            sudo mvn clean package -DskipTests
+            
+            echo "🚀 Running the app in background..."
+            nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &

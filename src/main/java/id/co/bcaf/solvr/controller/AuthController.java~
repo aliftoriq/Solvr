@@ -72,26 +72,19 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User response = userService.createUser(user);
 
-        try{
-            User response = userService.createUser(user);
+        // Create response DTO using Lombok's setter
+        UserHttp.Response httpResponse = new UserHttp.Response(
+                response.getName(),
+                response.getUsername(),
+                response.getRole().getName(),
+                response.isDeleted()
+        );
 
-            // Create response DTO using Lombok's setter
-            UserHttp.Response httpResponse = new UserHttp.Response(
-                    response.getName(),
-                    response.getUsername(),
-                    response.getRole().getName(),
-                    response.isDeleted()
-            );
+        return ResponseEntity
+                .ok(new ResponseTemplate(200, "Success", httpResponse));
 
-            return ResponseEntity
-                    .ok(new ResponseTemplate(200, "Success", httpResponse));
-        }catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseTemplate(500, "Internal Server Error", e.getMessage()));
-
-        }
 
     }
 
