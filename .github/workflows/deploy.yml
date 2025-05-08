@@ -23,13 +23,13 @@ jobs:
           script: |
             cd ~/Solvr
             echo "🔪 Killing existing app..."
-            pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
+            sudo pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
             
             echo "📥 Pulling latest code..."
-            git pull origin main
+            sudo git pull origin main
             
             echo "🧹 Building the app..."
             sudo mvn clean package -DskipTests
             
             echo "🚀 Running the app in background..."
-            nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
+            sudo nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &

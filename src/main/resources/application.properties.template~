@@ -1,5 +1,7 @@
 spring.application.name=solvr
 
+#TES CI CD
+
 # Database Config
 spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=solvr;encrypt=true;trustServerCertificate=true
 spring.datasource.username=sa
