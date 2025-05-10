@@ -20,4 +20,6 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
         WHERE lae.userEmployee.id = :employeeId
     """)
     List<LoanApplication> findByEmployeeId(UUID employeeId);
+
+    List<LoanApplication> findRequestedByUserCustomerId(UUID userCustomerId);
 }

@@ -55,6 +55,12 @@ public class LoanApplicationController {
         return ResponseEntity.ok(loanApplicationService.getAllLoanApplicationHistory(userId));
     }
 
+    @GetMapping("customer/history")
+    public ResponseEntity<?> getAllLoanApplicationHistoryByUserId(HttpServletRequest request) {
+        UUID userId = (UUID) request.getAttribute("userId");
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loanApplicationService.getAllCustomerHistory(userId)));
+    }
+
     @GetMapping("/marketing")
     public ResponseEntity<?> getAllLoanApplicationByUserId(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
@@ -130,5 +136,6 @@ public class LoanApplicationController {
         UUID userId = (UUID) request.getAttribute("userId");
         return ResponseEntity.ok(loanApplicationService.calculateSimulation(userId, simulationRequest));
     }
+
 
 }

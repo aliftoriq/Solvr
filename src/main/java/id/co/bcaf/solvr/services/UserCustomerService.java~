@@ -117,7 +117,7 @@ public class UserCustomerService {
     public UserCustomerDetailResponse getUserCustomerDetail(UUID userId) {
         User user = userService.getUserById(userId);
         if (user.getUserCustomer() == null) {
-            throw new CustomException.UserNotFoundException("User dengan ID " + userId + " tidak memiliki UserCustomer");
+            throw new CustomException.UserNotFoundException()"User dengan ID " + userId + " tidak memiliki UserCustomer");
         }
 
         UserCustomerDetailResponse userCustomerDetailResponse = new UserCustomerDetailResponse();

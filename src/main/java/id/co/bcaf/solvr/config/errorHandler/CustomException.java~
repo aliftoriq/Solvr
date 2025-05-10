@@ -2,7 +2,7 @@ package id.co.bcaf.solvr.config.errorHandler;
 
 public class CustomException {
 
-    public static class UserNotFoundException extends RuntimeException {
+    public class UserNotFoundException extends RuntimeException {
         public UserNotFoundException(String message) {
             super(message);
         }

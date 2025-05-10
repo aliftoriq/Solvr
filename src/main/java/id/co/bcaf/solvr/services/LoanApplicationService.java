@@ -250,6 +250,22 @@ public class LoanApplicationService {
         return Collections.emptyList();
     }
 
+    public List<LoanApplication> getAllCustomerHistory(UUID userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
+        }
+
+        UserCustomer userCustomer = user.getUserCustomer();
+        if (userCustomer == null) {
+            throw new IllegalArgumentException("User ini bukan customer");
+        }
+
+        UUID customerID = userCustomer.getId();
+
+        return loanApplicationRepository.findRequestedByUserCustomerId(customerID);
+    }
+
     public List<LoanApplication> getAllCustomerMarketing(UUID userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
@@ -444,4 +460,5 @@ public class LoanApplicationService {
 
         return response;
     }
+
 }
