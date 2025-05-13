@@ -538,7 +538,7 @@ public class LoanApplicationService {
         double remainingPlafon = plafon.getAmount() - totalLoanAmount;
 
         LoanSummaryResponse response = new LoanSummaryResponse();
-        response.setRemainingLoan(totalLoanAmount);
+        response.setRemainingLoan(remainingPlafon);
         response.setName(userCustomer.getUser().getName());
         response.setAccountNumber(userCustomer.getAccountNumber());
         response.setRemainingPlafon(remainingPlafon);

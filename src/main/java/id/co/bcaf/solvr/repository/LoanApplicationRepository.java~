@@ -14,7 +14,6 @@ import java.util.UUID;
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, UUID> {
     int countByUserCustomerAndStatusNot(UserCustomer user, String status);
     List<LoanApplication> findByUserCustomerAndStatusNot(UserCustomer user, String status);
-    List<LoanApplication> findByUserCustomerAndStatus(UserCustomer user, String status);
     @Query("""
         SELECT l FROM LoanApplication l
         JOIN l.loanApplicationToEmployees lae

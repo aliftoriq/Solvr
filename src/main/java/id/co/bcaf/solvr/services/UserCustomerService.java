@@ -150,10 +150,15 @@ public class UserCustomerService {
         return userCustomerRepository.findAll();
     }
 
-    public UserCustomer getUserCustomerById(UUID id) {
+    public UserCustomer getUserCustomerByUserId(UUID id) {
         User user = userService.getUserById(id);
 
         return userCustomerRepository.findById(user.getUserCustomer().getId())
+                .orElseThrow(() -> new EntityNotFoundException("UserCustomer dengan ID " + id + " tidak ditemukan"));
+    }
+
+    public UserCustomer getUserCustomerById(UUID id) {
+        return userCustomerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("UserCustomer dengan ID " + id + " tidak ditemukan"));
     }
 

@@ -141,9 +141,7 @@ public class LoanApplicationController {
     @GetMapping("/summary")
     public ResponseEntity<?> getLoanApplicationSummary(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(
-                new ResponseTemplate(200, "Success", loanApplicationService.getLoanApplicationSummary(userId))
-        );
+        return ResponseEntity.ok(loanApplicationService.getLoanApplicationSummary(userId));
     }
 
 }

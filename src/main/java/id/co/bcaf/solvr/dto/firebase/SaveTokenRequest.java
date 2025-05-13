@@ -1,0 +1,5 @@
+package id.co.bcaf.solvr.dto.firebase;
+
+public class SaveTokenRequest {
+    private String token;
+}

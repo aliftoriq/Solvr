@@ -3,7 +3,6 @@ package id.co.bcaf.solvr.dto.loan;
 
 import id.co.bcaf.solvr.dto.user.UserCustomerResponse;
 import id.co.bcaf.solvr.dto.user.UserEmployeeResponse;
-import id.co.bcaf.solvr.model.account.LoanApplication;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,5 +37,4 @@ public class LoanApplicationResponse {
 
     private UserCustomerResponse userCustomer;
     private List<UserEmployeeResponse> userEmployee;
-
 }
