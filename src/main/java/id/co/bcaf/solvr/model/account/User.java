@@ -30,6 +30,9 @@ public class User {
 
     private String status;
 
+    @Column(nullable = true)
+    private String urlProfilePicture;
+
     @ManyToOne
     @JoinColumn(name = "role", referencedColumnName = "id")
     private Role role;

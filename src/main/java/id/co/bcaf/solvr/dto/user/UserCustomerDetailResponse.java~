@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.dto.user;
 
+import id.co.bcaf.solvr.dto.plafon.PlafonPackageResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,5 @@ public class UserCustomerDetailResponse {
     private Double monthlyIncome;
     private Long totalPaidLoan;
     private String accountNumber;
-
-    private Plafonr
+    private PlafonPackageResponse plafonPackage;
 }

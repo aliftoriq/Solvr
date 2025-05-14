@@ -1,0 +1,128 @@
+package id.co.bcaf.solvr.services;
+
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import id.co.bcaf.solvr.config.cloudinary.CloudinaryConfig;
+import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.model.account.UserCustomer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+
+@Service
+public class CloudinaryService {
+
+    @Autowired
+    private Cloudinary cloudinary;
+
+    @Autowired
+    private UserService userService;
+
+    public String uploadImage(MultipartFile file) throws IOException {
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        return uploadResult.get("secure_url").toString();
+    }
+
+    public String uploadProfileImage(UUID userId, MultipartFile file) throws IOException {
+        User user = userService.getUserById(userId);
+
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+
+        String oldUrl = user.getUrlProfilePicture();
+        String oldPublicId = extractPublicIdFromUrl(oldUrl);
+
+        if (oldPublicId != null) {
+            try {
+                cloudinary.uploader().destroy(oldPublicId, ObjectUtils.emptyMap());
+            } catch (Exception e) {
+                System.err.println("Gagal hapus file lama: " + e.getMessage());
+            }
+        }
+
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        String url = uploadResult.get("secure_url").toString();
+
+        user.setUrlProfilePicture(url);
+
+        userService.updateUser(userId, user);
+
+        return url;
+    }
+
+    public String getUserProfilePicture(UUID userId) {
+        User user = userService.getUserById(userId);
+        return user.getUrlProfilePicture();
+    }
+
+    public String uploadKtp(UUID userId, MultipartFile file) throws IOException {
+        User user = userService.getUserById(userId);
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        String url = uploadResult.get("secure_url").toString();
+
+        String oldUrl = user.getUserCustomer().getUrlKtp();
+        String oldPublicId = extractPublicIdFromUrl(oldUrl);
+
+        if (oldPublicId != null) {
+            try {
+                cloudinary.uploader().destroy(oldPublicId, ObjectUtils.emptyMap());
+            } catch (Exception e) {
+                System.err.println("Gagal hapus file lama: " + e.getMessage());
+            }
+        }
+
+        UserCustomer userCustomer = user.getUserCustomer();
+        if (userCustomer != null) {
+            userCustomer.setUrlKtp(url);
+        }
+
+        user.setUserCustomer(userCustomer);
+
+        userService.updateUser(userId, user);
+        return url;
+    }
+
+    public String uploadSelfie(UUID userId, MultipartFile file) throws IOException {
+        User user = userService.getUserById(userId);
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        String url = uploadResult.get("secure_url").toString();
+
+        String oldUrl = user.getUserCustomer().getUrlSelfieWithKtp();
+        String oldPublicId = extractPublicIdFromUrl(oldUrl);
+
+        if (oldPublicId != null) {
+            try {
+                cloudinary.uploader().destroy(oldPublicId, ObjectUtils.emptyMap());
+            } catch (Exception e) {
+                System.err.println("Gagal hapus file lama: " + e.getMessage());
+            }
+        }
+
+        UserCustomer userCustomer = user.getUserCustomer();
+        if (userCustomer != null) {
+            userCustomer.setUrlSelfieWithKtp(url);
+        }
+
+        user.setUserCustomer(userCustomer);
+        userService.updateUser(userId, user);
+        return url;
+    }
+
+//    Untuk ambil idd ari url yang udah disimpen di DB
+    private String extractPublicIdFromUrl(String url) {
+        if (url == null || url.isEmpty()) return null;
+
+        int lastSlashIndex = url.lastIndexOf("/");
+        int dotIndex = url.lastIndexOf(".");
+
+        if (lastSlashIndex == -1 || dotIndex == -1 || dotIndex < lastSlashIndex) return null;
+
+        return url.substring(lastSlashIndex + 1, dotIndex);
+    }
+
+}

@@ -18,6 +18,7 @@ public class UserCustomer {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+
     private String nik;
     private String address;
     private String phone;
@@ -27,6 +28,12 @@ public class UserCustomer {
     private Double monthlyIncome;
     private String accountNumber;
     private Long totalPaidLoan;
+
+    @Column(nullable = true)
+    private String urlKtp;
+
+    @Column(nullable = true)
+    private String urlSelfieWithKtp;
 
     @OneToMany
     private Set<LoanApplication> loanApplications;

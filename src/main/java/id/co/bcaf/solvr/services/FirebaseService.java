@@ -22,7 +22,6 @@ import java.util.UUID;
 @Service
 public class FirebaseService {
 
-
     @Autowired
     private FirebaseTokenRepository firebaseTokenRepository;
 

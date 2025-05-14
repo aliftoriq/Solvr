@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.model.account;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLDelete;
@@ -28,6 +29,9 @@ public class User {
     private String password;
 
     private String status;
+
+    @Column(nullable = true)
+    private String profilePicture;
 
     @ManyToOne
     @JoinColumn(name = "role", referencedColumnName = "id")

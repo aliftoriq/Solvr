@@ -143,6 +143,16 @@ public class UserCustomerService {
 
         userCustomerDetailResponse.setPlafonPackage(plafonPackage);
 
+        userCustomerDetailResponse.setUrlProfilePicture(
+                user.getUrlProfilePicture() != null ? user.getUrlProfilePicture() : null
+        );
+        userCustomerDetailResponse.setUrlKtp(
+                user.getUserCustomer() != null ? user.getUserCustomer().getUrlKtp() : null
+        );
+        userCustomerDetailResponse.setUrlSelfieWithKtp(
+                user.getUserCustomer() != null ? user.getUserCustomer().getUrlSelfieWithKtp() : null
+        );
+
         return userCustomerDetailResponse;
     }
 
