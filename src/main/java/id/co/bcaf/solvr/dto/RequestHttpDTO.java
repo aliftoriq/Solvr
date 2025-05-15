@@ -17,6 +17,15 @@ public class RequestHttpDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class LoginFirebaseRequest {
+        private String token;
+    }
+
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static  class ForgetPasswordReset {
         private String username;
     }

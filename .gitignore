@@ -5,7 +5,9 @@ target/
 !**/src/test/**/target/
 
 /src/main/resources/application.properties
-src/main/resources/solvr-26c8f-firebase-adminsdk-fbsvc-47ba2a0a52.json
+/src/main/resources/solvr-26c8f-firebase-adminsdk-fbsvc-9cb8ce5f3d.json
+/src/main/resources/*.json
+
 
 ### STS ###
 .apt_generated

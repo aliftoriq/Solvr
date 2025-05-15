@@ -1,5 +1,6 @@
 package id.co.bcaf.solvr.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import id.co.bcaf.solvr.dto.*;
 import id.co.bcaf.solvr.dto.auth.ChangePasswordRequest;
 import id.co.bcaf.solvr.dto.auth.ForgetPasswordRequest;
@@ -17,9 +18,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+//TEST CI CD
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -69,6 +72,22 @@ public class AuthController {
     }
 
 
+    @PostMapping("/firebase-login")
+    public ResponseEntity<?> firebaseLogin(@RequestBody RequestHttpDTO.LoginFirebaseRequest payload) {
+        String token = payload.getToken();
+
+        try {
+            LoginResponse loginResponse = authService.authenticateUserFromFirebaseToken(token);
+            return ResponseEntity.ok(new ResponseTemplate(200, "Success", loginResponse));
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ResponseTemplate(401, "Invalid Firebase Token", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseTemplate(500, "Internal Server Error", e.getMessage()));
+        }
+    }
+    
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {

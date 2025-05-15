@@ -1,11 +1,11 @@
 package id.co.bcaf.solvr.services;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import id.co.bcaf.solvr.dto.UserResponse;
 import id.co.bcaf.solvr.dto.auth.LoginResponse;
-import id.co.bcaf.solvr.model.account.Feature;
-import id.co.bcaf.solvr.model.account.PasswordToken;
-import id.co.bcaf.solvr.model.account.RoleToFeature;
-import id.co.bcaf.solvr.model.account.User;
+import id.co.bcaf.solvr.model.account.*;
 import id.co.bcaf.solvr.repository.PasswordTokenRepository;
 import id.co.bcaf.solvr.repository.UserRepository;
 import id.co.bcaf.solvr.utils.JwtUtil;
@@ -78,6 +78,52 @@ public class AuthService {
         }
         return null;
     }
+
+    public LoginResponse authenticateUserFromFirebaseToken(String firebaseToken) throws FirebaseAuthException {
+        logger.info("Authenticating Firebase token...");
+
+        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
+        String email = decodedToken.getEmail();
+        String name = decodedToken.getName();
+
+        logger.info("Firebase token verified for email: {}", email);
+
+        Optional<User> userOptional = userRepository.findByUsername(email);
+
+        User user;
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            logger.info("User found: {}", user.getUsername());
+        } else {
+            // Buat user baru jika belum ada
+            user = new User();
+            user.setUsername(email);
+            user.setName(name != null ? name : "User");
+            user.setPassword("");
+            user.setStatus("firebase");
+
+            Role role = new Role();
+            role.setId(2);
+            user.setRole(role);
+            user = userRepository.save(user);
+
+            logger.info("New user created from Firebase token: {}", user.getUsername());
+        }
+
+        List<RoleToFeature> roleToFeatures = featureService.getRoleToFeatureByRole(user.getRole());
+
+        List<String> features = roleToFeatures.stream()
+                .map(RoleToFeature::getFeature)
+                .map(Feature::getName)
+                .collect(Collectors.toList());
+
+        return new LoginResponse(
+                jwtUtil.generateToken(user.getUsername(), user.getRole().getName(), user.getId()),
+                features,
+                new UserResponse(user.getName(), user.getUsername(), user.getRole().getName(), user.getStatus(), user.isDeleted())
+        );
+    }
+
 
     @Transactional
     public String sendPasswordResetLink(String username) {
