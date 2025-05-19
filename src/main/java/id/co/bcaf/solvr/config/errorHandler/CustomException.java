@@ -9,12 +9,11 @@ public class CustomException {
     }
 
     public static class InvalidInputException extends RuntimeException {
-        public String message;
-
         public InvalidInputException(String message) {
-            this.message = message;
+            super(message);
         }
     }
+
 
     public static class UserAlreadyExists extends RuntimeException {
         public UserAlreadyExists(String message) {

@@ -19,10 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -168,7 +165,7 @@ public class AuthService {
             user.setUsername(email);
             user.setName(name != null ? name : "User");
             user.setPassword(""); // belum di-set
-            user.setStatus("FIREBASE");
+            user.setStatus("needs_password");
 
             Role role = new Role();
             role.setId(2);
@@ -201,14 +198,18 @@ public class AuthService {
     public String savePassword(UUID userId, String password){
         User user = userService.getUserById(userId);
 
-        if (user.getStatus() == "needs_password"){
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+
+        if (Objects.equals(user.getStatus(), "needs_password")){
             user.setPassword(passwordEncoder.encode(password));
 
             user.setStatus("ACTIVE");
             userService.createUser(user);
             return "Password berhasil disimpan";
         } else {
-            return "User sudah memiliki password";
+            throw new CustomException.InvalidInputException("User sudah memiliki password");
         }
     }
 
