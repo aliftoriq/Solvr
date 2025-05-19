@@ -206,7 +206,7 @@ public class AuthService {
             user.setPassword(passwordEncoder.encode(password));
 
             user.setStatus("ACTIVE");
-            userService.updateUser(user.getId(), user);
+            userService.createUser(user);
             return "Password berhasil disimpan";
         } else {
             throw new CustomException.InvalidInputException("User sudah memiliki password");
