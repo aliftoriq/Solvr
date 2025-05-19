@@ -46,6 +46,8 @@ public class AuthService {
     private BlacklistTokenService blacklistTokenService;
     @Autowired
     private FeatureService featureService;
+    @Autowired
+    private RoleService roleService;
 
 
     @Transactional
@@ -164,11 +166,10 @@ public class AuthService {
             user = new User();
             user.setUsername(email);
             user.setName(name != null ? name : "User");
-            user.setPassword(""); // belum di-set
+            user.setPassword("");
             user.setStatus("needs_password");
 
-            Role role = new Role();
-            role.setId(2);
+            Role role = roleService.getRoleByName("CUSTOMER");
             user.setRole(role);
             user.setVerified(true);
             user = userRepository.save(user);
