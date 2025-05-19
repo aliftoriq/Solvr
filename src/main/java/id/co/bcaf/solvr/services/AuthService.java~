@@ -173,7 +173,6 @@ public class AuthService {
             Role role = new Role();
             role.setId(2);
             user.setRole(role);
-            user.setVerified(true);
             user = userRepository.save(user);
 
             logger.info("New user created from Firebase token: {}", user.getUsername());

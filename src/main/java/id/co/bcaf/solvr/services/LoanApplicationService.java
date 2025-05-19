@@ -80,6 +80,20 @@ public class LoanApplicationService {
         List<LoanApplication> activeLoans = loanApplicationRepository
                 .findByUserCustomerAndStatusNot(userCustomer, "LUNAS");
 
+        List<LoanApplication> requestedLoans = loanApplicationRepository
+                .findByUserCustomerAndStatus(userCustomer, "REQUEST");
+
+        if (requestedLoans.size() > 0) {
+            throw new CustomException.InvalidInputException("UserCustomer sedang memiliki permohonan pinjaman. ");
+        }
+
+        List<LoanApplication> approvedLoans = loanApplicationRepository
+                .findByUserCustomerAndStatus(userCustomer, "APPROVED");
+
+        if (approvedLoans.size() > 0) {
+            throw new CustomException.InvalidInputException("UserCustomer sedang memiliki permohonan pinjaman. ");
+        }
+
         PlafonPackage plafonPackage = userCustomer.getPlafonPackage();
         if (plafonPackage == null) {
             throw new CustomException.InvalidInputException("UserCustomer belum memiliki PlafonPackage yang valid. ");

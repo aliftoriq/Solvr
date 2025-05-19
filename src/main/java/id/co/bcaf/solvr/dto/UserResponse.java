@@ -12,5 +12,6 @@ public class UserResponse {
     private String username;
     private String role;
     private String status;
+    private boolean isVerified;
     private boolean deleted = Boolean.FALSE;
 }

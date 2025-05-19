@@ -2,14 +2,13 @@ package id.co.bcaf.solvr.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import id.co.bcaf.solvr.dto.*;
-import id.co.bcaf.solvr.dto.auth.ChangePasswordRequest;
-import id.co.bcaf.solvr.dto.auth.ForgetPasswordRequest;
-import id.co.bcaf.solvr.dto.auth.LoginResponse;
-import id.co.bcaf.solvr.dto.auth.ResetPasswordRequest;
+import id.co.bcaf.solvr.dto.auth.*;
 import id.co.bcaf.solvr.model.account.User;
 import id.co.bcaf.solvr.services.AuthService;
 import id.co.bcaf.solvr.services.UserService;
 import id.co.bcaf.solvr.utils.JwtUtil;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -44,31 +43,16 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody RequestHttpDTO.LoginRequest loginRequest) {
-        try {
-            logger.info("Login attempt for username: {}", loginRequest.getUsername());
+        logger.info("Login attempt for username: {}", loginRequest.getUsername());
 
-            LoginResponse loginResponse = authService.authenticateUser(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-            );
+        LoginResponse loginResponse = authService.authenticateUser(
+                loginRequest.getUsername(),
+                loginRequest.getPassword()
+        );
 
-            if (loginResponse.getToken() == null) {
-                logger.warn("Authentication failed for username: {}", loginRequest.getUsername());
-                return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body(new ResponseTemplate(401, "Invalid username or password", null));
-            }
+        logger.info("Successful login for username: {}", loginRequest.getUsername());
 
-            logger.info("Successful login for username: {}", loginRequest.getUsername());
-            return ResponseEntity.ok(new ResponseTemplate(200, "Success", loginResponse));
-
-
-        } catch (Exception e) {
-            logger.error("Login error", e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseTemplate(500, "Internal Server Error", null));
-        }
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loginResponse));
     }
 
 
@@ -88,26 +72,54 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/save-password")
+    public ResponseEntity<?> savePsssword(HttpServletRequest request, @RequestBody SavePasswordRequest savePasswordRequest){
+        UUID userId = (UUID) request.getAttribute("userId");
+
+        return ResponseEntity
+                .ok(new ResponseTemplate(200, "success", authService.savePassword(userId, savePasswordRequest.getPassword())));
+    }
+
+
+//    @PostMapping("/register")
+//    public ResponseEntity<?> registerUser(@RequestBody User user) {
+//
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        User response = userService.createUser(user);
+//
+//        // Create response DTO using Lombok's setter
+//        UserHttp.Response httpResponse = new UserHttp.Response(
+//                response.getName(),
+//                response.getUsername(),
+//                response.getRole().getName(),
+//                response.isDeleted()
+//        );
+//
+//        return ResponseEntity
+//                .ok(new ResponseTemplate(200, "Success", httpResponse));
+//    }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User response = userService.createUser(user);
+        User userRes = authService.registerUser(user);
 
         // Create response DTO using Lombok's setter
         UserHttp.Response httpResponse = new UserHttp.Response(
-                response.getName(),
-                response.getUsername(),
-                response.getRole().getName(),
-                response.isDeleted()
+                userRes.getName(),
+                userRes.getUsername(),
+                userRes.getRole().getName(),
+                userRes.isDeleted()
         );
 
-        return ResponseEntity
-                .ok(new ResponseTemplate(200, "Success", httpResponse));
-
-
+        return ResponseEntity.ok(new ResponseTemplate(200, "Verifikasi Email Terkirim", httpResponse));
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestParam("token") String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(new ResponseTemplate(200, "Email verified successfully.", null));
+    }
+
 
     @PostMapping("/forget-password")
     public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {

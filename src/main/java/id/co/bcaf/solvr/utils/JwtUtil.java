@@ -47,6 +47,33 @@ public class JwtUtil {
                 .compact();
     }
 
+    // Generate email verification token
+    public String generateVerificationToken(String username) {
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 jam
+
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("type", "verify")
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // Check if verification token is valid
+    public boolean isVerificationTokenValid(String token, String expectedUsername) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return expectedUsername.equals(claims.getSubject())
+                    && "verify".equals(claims.get("type"))
+                    && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
     // Get username from token
     public String extractusername(String token) {
         try {

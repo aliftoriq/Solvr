@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         logger.warn("Validation error: {}", ex.getMessage());
         return new ResponseEntity<>(new ResponseTemplate(
                 400,
-                "Bad Request: " + ex.getMessage(),
+                ex.getMessage(),
                 null
         ), HttpStatus.BAD_REQUEST);
     }

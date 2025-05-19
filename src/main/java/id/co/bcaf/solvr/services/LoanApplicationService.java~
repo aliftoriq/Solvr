@@ -80,6 +80,13 @@ public class LoanApplicationService {
         List<LoanApplication> activeLoans = loanApplicationRepository
                 .findByUserCustomerAndStatusNot(userCustomer, "LUNAS");
 
+        List<LoanApplication> requestedLoans = loanApplicationRepository
+                .findByUserCustomerAndStatusNot(userCustomer, "REQUEST");
+
+        if (requestedLoans.size() > 0) {
+            throw new CustomException.InvalidInputException("UserCustomer sedang memiliki permohonan pinjaman. ");
+        }
+
         PlafonPackage plafonPackage = userCustomer.getPlafonPackage();
         if (plafonPackage == null) {
             throw new CustomException.InvalidInputException("UserCustomer belum memiliki PlafonPackage yang valid. ");
@@ -538,7 +545,7 @@ public class LoanApplicationService {
         double remainingPlafon = plafon.getAmount() - totalLoanAmount;
 
         LoanSummaryResponse response = new LoanSummaryResponse();
-        response.setRemainingLoan(remainingPlafon);
+        response.setRemainingLoan(totalLoanAmount);
         response.setName(userCustomer.getUser().getName());
         response.setAccountNumber(userCustomer.getAccountNumber());
         response.setRemainingPlafon(remainingPlafon);

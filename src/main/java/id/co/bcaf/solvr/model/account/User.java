@@ -45,4 +45,11 @@ public class User {
     private UserEmployee userEmployee;
 
     private boolean deleted = Boolean.FALSE;
+
+    @Column(nullable = true)
+    private boolean verified = false;
+
+    @Column(nullable = true)
+    private String verifyTokenHash;
+
 }
