@@ -612,6 +612,17 @@ public class LoanApplicationService {
             loanResponses.add(loanResponse);
         }
 
+        // Cek aktif loan
+        List<String> excludedStatuses = List.of("DISBURSEMENT", "REJECTED");
+        List<LoanApplication> activeLoanApplications = loanApplicationRepository.findByUserCustomerAndStatusNotIn(userCustomer, excludedStatuses);
+
+        LoanApplicationResponse activeLoanApplicationResponse = new LoanApplicationResponse();
+        if (!activeLoanApplications.isEmpty()) {
+            activeLoanApplicationResponse = getApplicationById(activeLoanApplications.getFirst().getId());
+        }
+
+        response.setActiveLoanApplication(activeLoanApplicationResponse);
+
         response.setActiveLoans(loanResponses);
 
         return response;

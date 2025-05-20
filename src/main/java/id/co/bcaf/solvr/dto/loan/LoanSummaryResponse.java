@@ -19,5 +19,6 @@ public class LoanSummaryResponse {
     private double monthlyPayment;
 
     private List<LoanApplicationResponse> activeLoans;
+    private LoanApplicationResponse activeLoanApplication;
     private PlafonPackageResponse plafonPackage;
 }

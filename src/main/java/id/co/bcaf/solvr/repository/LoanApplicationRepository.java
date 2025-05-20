@@ -13,13 +13,25 @@ import java.util.UUID;
 @Repository
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, UUID> {
     int countByUserCustomerAndStatusNot(UserCustomer user, String status);
+
     List<LoanApplication> findByUserCustomerAndStatusNot(UserCustomer user, String status);
+
     List<LoanApplication> findByUserCustomerAndStatus(UserCustomer user, String status);
+
     @Query("""
-        SELECT l FROM LoanApplication l
-        JOIN l.loanApplicationToEmployees lae
-        WHERE lae.userEmployee.id = :employeeId
-    """)
+                SELECT l FROM LoanApplication l
+                WHERE l.userCustomer = :userCustomer AND l.status NOT IN :statuses
+            """)
+    List<LoanApplication> findByUserCustomerAndStatusNotIn(
+            @Param("userCustomer") UserCustomer userCustomer,
+            @Param("statuses") List<String> statuses
+    );
+
+    @Query("""
+                SELECT l FROM LoanApplication l
+                JOIN l.loanApplicationToEmployees lae
+                WHERE lae.userEmployee.id = :employeeId
+            """)
     List<LoanApplication> findByEmployeeId(UUID employeeId);
 
     List<LoanApplication> findRequestedByUserCustomerId(UUID userCustomerId);
