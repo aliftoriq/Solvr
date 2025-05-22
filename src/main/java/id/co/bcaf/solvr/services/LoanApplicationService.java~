@@ -534,7 +534,6 @@ public class LoanApplicationService {
         response.setAdminFee(adminFee);
         response.setRate(plafon.getInterestRate());
         response.setAmount(amount);
-        response.setAmountDisbursed(amount-adminFee);
         response.setTenor(tenor);
         response.setAccountNumber(userCustomer.getAccountNumber());
         response.setAddress(userCustomer.getAddress());
