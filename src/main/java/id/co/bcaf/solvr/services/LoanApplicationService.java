@@ -197,6 +197,7 @@ public class LoanApplicationService {
         response.setLoanAmount(loanApplication.getLoanAmount());
         response.setLoanTenor(loanApplication.getLoanTenor());
         response.setStatus(loanApplication.getStatus());
+        response.setMonthlyPayment(loanApplication.getMonthlyPayment());
         response.setRequestedAt(loanApplication.getRequestedAt());
         response.setApprovedAt(loanApplication.getApprovedAt());
 
@@ -424,7 +425,6 @@ public class LoanApplicationService {
 
         firebaseService.saveNotification(userId,request);
 
-        // Atau langsung update:
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
 
@@ -517,17 +517,26 @@ public class LoanApplicationService {
             throw new IllegalArgumentException("Tenor melebihi maksimum dari paket plafon.");
         }
 
-        // Kalkulasi angsuran menggunakan rumus anuitas
-        double monthlyInstallment = (amount * ratePerMonth) /
-                (1 - Math.pow(1 + ratePerMonth, -tenor));
+
+        // Kalkulasi anuitas
+        double monthlyInstallment = (amount * ratePerMonth) / (1 - Math.pow(1 + ratePerMonth, -tenor));
         double totalPayment = monthlyInstallment * tenor;
         double totalInterest = totalPayment - amount;
 
+        // Admin fee: contoh tetap 50_000 seperti frontend
+        double adminFee = 50000.0;
+
         // Response hasil simulasi
         SimulationResponse response = new SimulationResponse();
-        response.setMonthlyInstallment(monthlyInstallment);
+        response.setMonthlyPayment(monthlyInstallment);
         response.setTotalPayment(totalPayment);
         response.setTotalInterest(totalInterest);
+        response.setAdminFee(adminFee);
+        response.setRate(plafon.getInterestRate());
+        response.setAmount(amount);
+        response.setTenor(tenor);
+        response.setAccountNumber(userCustomer.getAccountNumber());
+        response.setAddress(userCustomer.getAddress());
 
         return response;
     }
