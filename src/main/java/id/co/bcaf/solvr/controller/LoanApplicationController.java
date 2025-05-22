@@ -135,7 +135,7 @@ public class LoanApplicationController {
     @PostMapping("/calculate")
     public ResponseEntity<?> calculateLoanApplication(HttpServletRequest request, @RequestBody SimulationRequest simulationRequest) {
         UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(loanApplicationService.calculateSimulation(userId, simulationRequest));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loanApplicationService.calculateSimulation(userId, simulationRequest)));
     }
 
     @GetMapping("/summary")
