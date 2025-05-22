@@ -41,7 +41,7 @@ public class StartupConfig {
     private void initPlafonPackages(PlafonPackageRepository plafonPackageRepository) {
         if (plafonPackageRepository.count() == 0) {
             List<PlafonPackage> packages = Arrays.asList(
-                    createPlafon("Bronze Package", 10_000_000L, 1, 5.5, 12),
+                    createPlafon("Bronze Package", 10_000_000L, 1, 5.5, 6),
                     createPlafon("Silver Package", 25_000_000L, 2, 5.3, 12),
                     createPlafon("Gold Package", 50_000_000L, 3, 5.0, 18),
                     createPlafon("Platinum Package", 100_000_000L, 4, 4.5, 24),
