@@ -28,7 +28,7 @@ public class SimulationResponse {
     @NotNull(message = "Amount tidak boleh kosong")
     private Double amount;
 
-    @NotNull(message = "Amount tidak boleh kosong")
+    @NotNull(message = "Amount disbursed tidak boleh kosong")
     private Double amountDisbursed;
 
     @Positive(message = "Tenor harus lebih dari 0")

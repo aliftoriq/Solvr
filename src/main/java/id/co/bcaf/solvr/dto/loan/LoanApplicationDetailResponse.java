@@ -1,9 +1,9 @@
 package id.co.bcaf.solvr.dto.loan;
 
-
+import id.co.bcaf.solvr.dto.plafon.PlafonPackageResponse;
 import id.co.bcaf.solvr.dto.user.UserCustomerResponse;
 import id.co.bcaf.solvr.dto.user.UserEmployeeResponse;
-import id.co.bcaf.solvr.model.account.LoanApplication;
+import id.co.bcaf.solvr.model.account.PlafonPackage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanApplicationResponse {
+public class LoanApplicationDetailResponse {
     private UUID id;
     private String name;
     private double loanAmount;
@@ -36,7 +36,17 @@ public class LoanApplicationResponse {
     private String branchManagerNotes;
     private String backOfficeNotes;
 
-private UserCustomerResponse userCustomer;
+    private UserCustomerResponse userCustomer;
     private List<UserEmployeeResponse> userEmployee;
+
+    private PlafonPackageResponse plafonPackage;
+    private Double remainingPlafon;
+    private Integer totalCompletedLoans;
+    private Double totalMonthlyPayment;
+    private Double debtToIncomeRatio;
+    private String riskLevel;
+
+    private List<LoanApplicationDetailResponse> activeLoans;
+    private List<LoanApplicationResponse> loanHistory;
 
 }

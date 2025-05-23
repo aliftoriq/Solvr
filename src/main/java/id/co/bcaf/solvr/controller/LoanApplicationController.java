@@ -47,7 +47,7 @@ public class LoanApplicationController {
 
     @GetMapping("{id}")
     public ResponseEntity<?> getLoanApplicationById(@PathVariable UUID id) {
-        return ResponseEntity.ok(loanApplicationService.getApplicationById(id));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", (loanApplicationService.getApplicationById(id))));
     }
 
     @GetMapping("/history")
@@ -65,19 +65,19 @@ public class LoanApplicationController {
     @GetMapping("/marketing")
     public ResponseEntity<?> getAllLoanApplicationByUserId(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(loanApplicationService.getAllCustomerMarketing(userId));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loanApplicationService.getAllCustomerByStatus(userId, "REQUEST")));
     }
 
     @GetMapping("/branch-manager")
     public ResponseEntity<?> getAllLoanApplicationBranchManager(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(loanApplicationService.getAllCustomerBranchManager(userId));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loanApplicationService.getAllCustomerByStatus(userId, "REVIEWED")));
     }
 
     @GetMapping("/backoffice")
     public ResponseEntity<?> getAllLoanApplicationBackOffice(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(loanApplicationService.getAllCustomerBackOffice(userId));
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loanApplicationService.getAllCustomerByStatus(userId, "APPROVED")));
     }
 
     @PutMapping("/{id}/review")

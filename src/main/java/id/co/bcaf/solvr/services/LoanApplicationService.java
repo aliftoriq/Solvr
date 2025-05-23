@@ -187,35 +187,50 @@ public class LoanApplicationService {
         return loanApplicationRepository.findAll();
     }
 
-    public LoanApplicationResponse getApplicationById(UUID id) {
+    public LoanApplicationDetailResponse getApplicationById(UUID id) {
         LoanApplication loanApplication = loanApplicationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("LoanApplication dengan ID " + id + " tidak ditemukan"));
 
-        LoanApplicationResponse response = new LoanApplicationResponse();
+        LoanApplicationDetailResponse response = new LoanApplicationDetailResponse();
 
+        // Set basic loan information
         response.setId(loanApplication.getId());
         response.setLoanAmount(loanApplication.getLoanAmount());
         response.setLoanTenor(loanApplication.getLoanTenor());
         response.setStatus(loanApplication.getStatus());
         response.setMonthlyPayment(loanApplication.getMonthlyPayment());
-        response.setRequestedAt(loanApplication.getRequestedAt());
-        response.setApprovedAt(loanApplication.getApprovedAt());
+        response.setHousingStatus(loanApplication.getHousingStatus());
 
+        // Set all datetime fields
+        response.setRequestedAt(loanApplication.getRequestedAt());
+        response.setReviewedAt(loanApplication.getReviewedAt());
+        response.setApprovedAt(loanApplication.getApprovedAt());
+        response.setDisbursedAt(loanApplication.getDisbursedAt());
+
+        // Set location information
+        response.setLongitude(loanApplication.getLongitude());
+        response.setLatitude(loanApplication.getLatitude());
+
+        // Set customer information
+        UserCustomer customer = loanApplication.getUserCustomer();
         UserCustomerResponse userCustomer = new UserCustomerResponse();
 
-        userCustomer.setId(loanApplication.getUserCustomer().getId());
-        userCustomer.setName(loanApplication.getUserCustomer().getUser().getName());
-        userCustomer.setNik(loanApplication.getUserCustomer().getNik());
-        userCustomer.setAddress(loanApplication.getUserCustomer().getAddress());
-        userCustomer.setBirthDate(loanApplication.getUserCustomer().getBirthDate());
-        userCustomer.setHousingStatus(loanApplication.getUserCustomer().getHousingStatus());
-        userCustomer.setPhone(loanApplication.getUserCustomer().getPhone());
-        userCustomer.setMotherName(loanApplication.getUserCustomer().getMotherName());
-        userCustomer.setMonthlyIncome(loanApplication.getUserCustomer().getMonthlyIncome());
-        userCustomer.setTotalPaidLoan(loanApplication.getUserCustomer().getTotalPaidLoan());
+        userCustomer.setId(customer.getId());
+        userCustomer.setName(customer.getUser().getName());
+        userCustomer.setNik(customer.getNik());
+        userCustomer.setAddress(customer.getAddress());
+        userCustomer.setBirthDate(customer.getBirthDate());
+        userCustomer.setHousingStatus(customer.getHousingStatus());
+        userCustomer.setPhone(customer.getPhone());
+        userCustomer.setMotherName(customer.getMotherName());
+        userCustomer.setMonthlyIncome(customer.getMonthlyIncome());
+        userCustomer.setTotalPaidLoan(customer.getTotalPaidLoan());
+        userCustomer.setAccountNumber(customer.getAccountNumber()); // Missing field
 
         response.setUserCustomer(userCustomer);
+        response.setName(customer.getUser().getName()); // Set name field
 
+        // Set employee information
         List<UserEmployeeResponse> employees = new ArrayList<>();
 
         for (LoanApplicationToEmployee lae : loanApplication.getLoanApplicationToEmployees()) {
@@ -224,15 +239,30 @@ public class LoanApplicationService {
             UserEmployeeResponse employee = new UserEmployeeResponse();
             employee.setId(userEmployee.getId());
             employee.setName(userEmployee.getUser().getName());
+            employee.setUsername(userEmployee.getUser().getUsername()); // Missing field
             employee.setEmail(userEmployee.getEmail());
             employee.setStatus(userEmployee.getUser().getStatus());
-            employee.setRole(new RoleResponse(userEmployee.getUser().getRole().getId(), userEmployee.getUser().getRole().getName(), null));
+            employee.setDeleted(userEmployee.getUser().isDeleted()); // Missing field
             employee.setNip(userEmployee.getNip());
-            employee.setBranch(new BranchResponse(userEmployee.getBranch().getId(), userEmployee.getBranch().getName(), userEmployee.getBranch().getLatitude(), userEmployee.getBranch().getLongitude()));
             employee.setDepartment(userEmployee.getDepartment());
 
-            String role = userEmployee.getUser().getRole().getName();
+            // Set role information
+            RoleResponse roleResponse = new RoleResponse();
+            roleResponse.setId(userEmployee.getUser().getRole().getId());
+            roleResponse.setName(userEmployee.getUser().getRole().getName());
+            // Set permissions if needed (third parameter in constructor was null)
+            employee.setRole(roleResponse);
 
+            // Set branch information
+            BranchResponse branchResponse = new BranchResponse();
+            branchResponse.setId(userEmployee.getBranch().getId());
+            branchResponse.setName(userEmployee.getBranch().getName());
+            branchResponse.setLatitude(userEmployee.getBranch().getLatitude());
+            branchResponse.setLongitude(userEmployee.getBranch().getLongitude());
+            employee.setBranch(branchResponse);
+
+            // Set notes based on role
+            String role = userEmployee.getUser().getRole().getName();
             if (role.equalsIgnoreCase("MARKETING")) {
                 response.setMarketingNotes(lae.getNotes());
             } else if (role.equalsIgnoreCase("BRANCH MANAGER")) {
@@ -245,6 +275,57 @@ public class LoanApplicationService {
         }
 
         response.setUserEmployee(employees);
+
+        // Add additional information for better decision making
+
+        // 1. Plafon information
+        PlafonPackage plafonPackage = customer.getPlafonPackage();
+        if (plafonPackage != null) {
+            PlafonPackageResponse plafonResponse = new PlafonPackageResponse();
+            plafonResponse.setId(plafonPackage.getId());
+            plafonResponse.setName(plafonPackage.getName());
+            plafonResponse.setAmount(plafonPackage.getAmount());
+            plafonResponse.setLevel(plafonPackage.getLevel());
+            plafonResponse.setInterestRate(plafonPackage.getInterestRate());
+            plafonResponse.setMaxTenorMonths(plafonPackage.getMaxTenorMonths());
+            response.setPlafonPackage(plafonResponse);
+
+            // Calculate remaining plafon
+            List<LoanApplication> activeLoans = loanApplicationRepository
+                    .findByUserCustomerAndStatusNot(customer, "LUNAS");
+            double totalActiveAmount = activeLoans.stream()
+                    .mapToDouble(LoanApplication::getLoanAmount)
+                    .sum();
+            response.setRemainingPlafon(plafonPackage.getAmount() - totalActiveAmount);
+        }
+
+        // 2. Loan history for risk assessment
+        List<LoanApplication> completedLoans = loanApplicationRepository
+                .findByUserCustomerAndStatus(customer, "LUNAS");
+        response.setTotalCompletedLoans(completedLoans.size());
+
+        // 3. Active loans information
+        List<LoanApplication> currentActiveLoans = loanApplicationRepository
+                .findByUserCustomerAndStatus(customer, "DISBURSEMENT");
+        double totalMonthlyPayment = currentActiveLoans.stream()
+                .mapToDouble(LoanApplication::getMonthlyPayment)
+                .sum();
+        response.setTotalMonthlyPayment(totalMonthlyPayment);
+
+        // 4. Calculate debt-to-income ratio for risk assessment
+        if (customer.getMonthlyIncome() != null && customer.getMonthlyIncome() > 0) {
+            double debtToIncomeRatio = (totalMonthlyPayment / customer.getMonthlyIncome()) * 100;
+            response.setDebtToIncomeRatio(debtToIncomeRatio);
+
+            // Set risk level based on debt-to-income ratio
+            if (debtToIncomeRatio < 30) {
+                response.setRiskLevel("LOW");
+            } else if (debtToIncomeRatio < 50) {
+                response.setRiskLevel("MEDIUM");
+            } else {
+                response.setRiskLevel("HIGH");
+            }
+        }
 
         return response;
     }
@@ -301,7 +382,7 @@ public class LoanApplicationService {
         return loanApplicationRepository.findRequestedByUserCustomerId(customerID);
     }
 
-    public List<LoanApplication> getAllCustomerMarketing(UUID userId) {
+    public List<LoanApplicationResponse> getAllCustomerByStatus(UUID userId, String status) {
         User user = userService.getUserById(userId);
         if (user == null) {
             throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
@@ -316,55 +397,97 @@ public class LoanApplicationService {
 
         List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
 
-        // Filter to keep only REQUEST status
-
-        return requestedLoans.stream()
-                .filter(loan -> "REQUEST".equals(loan.getStatus()))
+        // Filter to keep only REQUEST status loans
+        List<LoanApplication> filteredLoans = requestedLoans.stream()
+                .filter(loan -> status.equals(loan.getStatus()))
                 .collect(Collectors.toList());
-    }
 
-    public List<LoanApplication> getAllCustomerBackOffice(UUID userId) {
-        User user = userService.getUserById(userId);
-        if (user == null) {
-            throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
+        // Convert to LoanApplicationResponse
+        List<LoanApplicationResponse> responses = new ArrayList<>();
+
+        for (LoanApplication loan : filteredLoans) {
+            LoanApplicationResponse response = new LoanApplicationResponse();
+
+            // Set basic loan information
+            response.setId(loan.getId());
+            response.setLoanAmount(loan.getLoanAmount());
+            response.setLoanTenor(loan.getLoanTenor());
+            response.setMonthlyPayment(loan.getMonthlyPayment());
+            response.setStatus(loan.getStatus());
+            response.setHousingStatus(loan.getHousingStatus());
+            response.setRequestedAt(loan.getRequestedAt());
+            response.setReviewedAt(loan.getReviewedAt());
+            response.setApprovedAt(loan.getApprovedAt());
+            response.setDisbursedAt(loan.getDisbursedAt());
+            response.setLongitude(loan.getLongitude());
+            response.setLatitude(loan.getLatitude());
+
+            // Set customer information
+            UserCustomer customer = loan.getUserCustomer();
+            UserCustomerResponse customerResponse = new UserCustomerResponse();
+            customerResponse.setId(customer.getId());
+            customerResponse.setName(customer.getUser().getName());
+            customerResponse.setNik(customer.getNik());
+            customerResponse.setAddress(customer.getAddress());
+            customerResponse.setPhone(customer.getPhone());
+            customerResponse.setMotherName(customer.getMotherName());
+            customerResponse.setBirthDate(customer.getBirthDate());
+            customerResponse.setHousingStatus(customer.getHousingStatus());
+            customerResponse.setMonthlyIncome(customer.getMonthlyIncome());
+            customerResponse.setTotalPaidLoan(customer.getTotalPaidLoan());
+            customerResponse.setAccountNumber(customer.getAccountNumber());
+
+            response.setUserCustomer(customerResponse);
+            response.setName(customer.getUser().getName()); // Set name from customer
+
+            // Set employee information and notes
+            List<UserEmployeeResponse> employees = new ArrayList<>();
+
+            for (LoanApplicationToEmployee lae : loan.getLoanApplicationToEmployees()) {
+                UserEmployee emp = lae.getUserEmployee();
+
+                UserEmployeeResponse empResponse = new UserEmployeeResponse();
+                empResponse.setId(emp.getId());
+                empResponse.setName(emp.getUser().getName());
+                empResponse.setUsername(emp.getUser().getUsername());
+                empResponse.setStatus(emp.getUser().getStatus());
+                empResponse.setEmail(emp.getEmail());
+                empResponse.setDeleted(emp.getUser().isDeleted());
+                empResponse.setDepartment(emp.getDepartment());
+                empResponse.setNip(emp.getNip());
+
+                // Set role
+                RoleResponse roleResponse = new RoleResponse();
+                roleResponse.setId(emp.getUser().getRole().getId());
+                roleResponse.setName(emp.getUser().getRole().getName());
+                empResponse.setRole(roleResponse);
+
+                // Set branch
+                BranchResponse branchResponse = new BranchResponse();
+                branchResponse.setId(emp.getBranch().getId());
+                branchResponse.setName(emp.getBranch().getName());
+                branchResponse.setLatitude(emp.getBranch().getLatitude());
+                branchResponse.setLongitude(emp.getBranch().getLongitude());
+                empResponse.setBranch(branchResponse);
+
+                employees.add(empResponse);
+
+                // Set notes based on employee role
+                String role = emp.getUser().getRole().getName();
+                if (role.equalsIgnoreCase("MARKETING")) {
+                    response.setMarketingNotes(lae.getNotes());
+                } else if (role.equalsIgnoreCase("BRANCH MANAGER")) {
+                    response.setBranchManagerNotes(lae.getNotes());
+                } else if (role.equalsIgnoreCase("BACK OFFICE")) {
+                    response.setBackOfficeNotes(lae.getNotes());
+                }
+            }
+
+            response.setUserEmployee(employees);
+            responses.add(response);
         }
 
-        UserEmployee userEmployee = user.getUserEmployee();
-        if (userEmployee == null) {
-            throw new IllegalArgumentException("User ini bukan karyawan/employee");
-        }
-
-        UUID employeeId = userEmployee.getId();
-
-        List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
-
-        // Filter to keep only REQUEST status
-
-        return requestedLoans.stream()
-                .filter(loan -> "APPROVED".equals(loan.getStatus()))
-                .collect(Collectors.toList());
-    }
-
-    public List<LoanApplication> getAllCustomerBranchManager(UUID userId) {
-        User user = userService.getUserById(userId);
-        if (user == null) {
-            throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
-        }
-
-        UserEmployee userEmployee = user.getUserEmployee();
-        if (userEmployee == null) {
-            throw new IllegalArgumentException("User ini bukan karyawan/employee");
-        }
-
-        UUID employeeId = userEmployee.getId();
-
-        List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
-
-        // Filter to keep only REQUEST status
-
-        return requestedLoans.stream()
-                .filter(loan -> "REVIEWED".equals(loan.getStatus()))
-                .collect(Collectors.toList());
+        return responses;
     }
 
 
@@ -384,7 +507,6 @@ public class LoanApplicationService {
                 .orElseThrow(() -> new EntityNotFoundException("LAE tidak ditemukan untuk employee ID: " + userEmployeeId));
 
 
-        // Atau langsung update:
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
 
@@ -626,7 +748,7 @@ public class LoanApplicationService {
         List<String> excludedStatuses = List.of("DISBURSEMENT", "REJECTED");
         List<LoanApplication> activeLoanApplications = loanApplicationRepository.findByUserCustomerAndStatusNotIn(userCustomer, excludedStatuses);
 
-        LoanApplicationResponse activeLoanApplicationResponse = new LoanApplicationResponse();
+        LoanApplicationDetailResponse activeLoanApplicationResponse = new LoanApplicationDetailResponse();
         if (!activeLoanApplications.isEmpty()) {
             activeLoanApplicationResponse = getApplicationById(activeLoanApplications.getFirst().getId());
         }
