@@ -229,8 +229,6 @@ public class AuthService {
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
 
         if (resetTokenRepository.findByUser(user).isPresent()) {
-            resetTokenRepository.deleteByUserId(user.getId());
-        }
 
         PasswordToken resetToken = new PasswordToken();
         resetToken.setToken(token);
