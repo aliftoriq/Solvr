@@ -10,4 +10,5 @@ import java.util.List;
 public interface FirebaseTokenRepository extends JpaRepository<FirebaseToken, UUID> {
     List<FirebaseToken> findByUser_Id(UUID userId);
     FirebaseToken findByToken(String token);
+    void deleteByToken(String token);
 }

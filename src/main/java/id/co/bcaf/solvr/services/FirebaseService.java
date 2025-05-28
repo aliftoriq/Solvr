@@ -51,7 +51,17 @@ public class FirebaseService {
             return "Successfully sent message: " + response;
 
         } catch (FirebaseMessagingException e) {
-            throw new RuntimeException("Failed to send FCM message: " + e.getMessage());
+            String errorCode = e.getMessage();
+            if ("registration-token-not-registered".equals(errorCode) ||
+                    "invalid-argument".equals(errorCode) ||
+                    "not-found".equals(errorCode)) {
+                firebaseTokenRepository.deleteByToken(request.getToken());
+
+                return "Failed to send FCM message: " + errorCode;
+            } else {
+
+                throw new RuntimeException("Failed to send FCM message: " + e.getMessage());
+            }
         }
     }
 
