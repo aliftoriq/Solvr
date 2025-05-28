@@ -1,46 +1,36 @@
-name: Deploy to VM
+name: Deploy Spring Boot to Ubuntu VM
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check if SSH_KEY secret exists
-        run: |
-          if [ -z "${{ secrets.SSH_KEY }}" ]; then
-            echo "❌ SSH_KEY is empty"
-            exit 1
-          else
-            echo "✅ SSH_KE .Y is set"
-          fi
-
-      - name: 🐧 Set up SSH and deploy to VM
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.8.0
         with:
-          host: ${{ secrets.VM_IP }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd ~/Solvr || { echo "❌ Directory Solvr not found"; exit 1; }
+          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
 
+      - name: Deploy to VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+            cd ~/Solvr || { echo "❌ Directory Solvr not found"; exit 1; }
+          
             echo "🔪 Killing existing app..."
             pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
-
+          
             echo "📥 Pulling latest code..."
-            sudo git reset --hard
-            sudo git pull origin main
-
+            git pull origin main
+          
             echo "🧹 Building the app..."
-            sudo mvn clean package -DskipTests
-
+            mvn clean package -DskipTests
+          
             echo "🚀 Running the app in background..."
             nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
-
+          EOF
