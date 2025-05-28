@@ -43,7 +43,7 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     @Query(value = "SELECT COALESCE(SUM(loan_amount), 0) FROM loan_application WHERE status = :status", nativeQuery = true)
     double sumLoanAmountByStatus(@Param("status") String status);
 
-    @Query(value = "SELECT COALESCE(SUM(loan_amount), 0) FROM loan_application WHERE status = 'DISBURSEMENT'", nativeQuery = true)
+
     double sumOutstandingLoan();
 
 

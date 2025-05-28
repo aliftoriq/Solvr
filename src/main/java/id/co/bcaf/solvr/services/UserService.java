@@ -49,6 +49,15 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    public Long countByRoleIn(List<String> roles) {
+        return userRepository.countByRoleIn(roles);
+    }
+
+    public List<User> findByRoleIn(List<String> roles) {
+
+        return userRepository.findByRoleNameIn(roles);
+    }
+
 //    private String extractUsernameFromToken(String authHeader) {
 //        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 //            throw new RuntimeException("Invalid Authorization header");

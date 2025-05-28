@@ -145,13 +145,6 @@ public class LoanApplicationController {
                 new ResponseTemplate(200, "Success", loanApplicationService.getLoanApplicationSummary(userId))
         );
     }
-
-    @GetMapping("/dashboard-summary")
-    public ResponseEntity<?> getDashboardSummary(HttpServletRequest request) {
-        UUID userId = (UUID) request.getAttribute("userId");
-        return ResponseEntity.ok(
-                new ResponseTemplate(200, "Success", loanApplicationService.getDashboardSummary(userId))
-        );
-    }
+    
 
 }

@@ -16,6 +16,8 @@ public class LoanApplicationToEmployeeService {
     @Autowired
     private LoanApplicationToEmployeeRepository repository;
 
+
+
 //    @Transactional
 //    public void updateNotes(UUID userId, String notes) {
 //        LoanApplicationToEmployee lae = repository.(userId)

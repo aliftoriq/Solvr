@@ -764,7 +764,7 @@ public class LoanApplicationService {
 
         DashboardSummaryResponse response = new DashboardSummaryResponse();
 
-        if (role.equals("SUPER_ADMIN")) {
+        if (role.equals("SUPER ADMIN")) {
             // Jumlah total karyawan berdasarkan role
             List<User> allEmployees = userService.findByRoleIn(List.of("MARKETING", "BRANCH MANAGER", "BACK OFFICE"));
             response.setTotalEmployees(allEmployees.size());

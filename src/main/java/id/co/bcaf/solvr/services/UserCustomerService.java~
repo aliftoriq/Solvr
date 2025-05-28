@@ -176,9 +176,5 @@ public class UserCustomerService {
         return userCustomerRepository.count();
     }
 
-    public List<UserCustomer> findAll() {
-        return userCustomerRepository.findAll();
-    }
-
 }
 
