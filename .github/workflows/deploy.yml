@@ -89,9 +89,9 @@ jobs:
       - name: Copy JAR to Ubuntu VM
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST}}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
           source: "target/*.jar"
           target: "/var/www/solvr/app.jar"
 
