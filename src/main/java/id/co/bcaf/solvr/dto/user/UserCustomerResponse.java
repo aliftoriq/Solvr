@@ -22,4 +22,7 @@ public class UserCustomerResponse {
     private Double monthlyIncome;
     private Long totalPaidLoan;
     private String accountNumber;
+    private String urlProfilePicture;
+    private String urlKtp;
+    private String urlSelfieWithKtp;
 }

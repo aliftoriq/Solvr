@@ -705,7 +705,9 @@ public class LoanApplicationService {
         customerResponse.setMotherName(userCustomer.getMotherName());
         customerResponse.setMonthlyIncome(userCustomer.getMonthlyIncome());
         customerResponse.setTotalPaidLoan(userCustomer.getTotalPaidLoan());
-
+        customerResponse.setUrlProfilePicture(userCustomer.getUser().getUrlProfilePicture());
+        customerResponse.setUrlKtp(userCustomer.getUrlKtp());
+        customerResponse.setUrlSelfieWithKtp(userCustomer.getUrlSelfieWithKtp());
 
         // Set semua pinjaman aktif
         List<LoanApplicationResponse> loanResponses = new ArrayList<>();
