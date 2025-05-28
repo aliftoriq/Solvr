@@ -59,7 +59,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build Spring Boot App (Maven)
-        run: ./mvnw clean package -DskipTests
+        run: mvn clean package -DskipTests
 
       - name: Copy JAR to Ubuntu VM
         uses: appleboy/scp-action@v0.1.4
