@@ -106,3 +106,5 @@ jobs:
             cd /home/${{ secrets.USERNAME }}/solvr-test-ci-cd
             nohup java -jar solvr-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod > app.log 2>&1 &
             echo "App deployed and running!"
+            tail -f app.log
+
