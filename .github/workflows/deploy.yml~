@@ -1,36 +1,83 @@
+#name: Deploy Spring Boot to Ubuntu VM
+#
+#on:
+#  push:
+#    branches: [ main ]
+#
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Set up SSH
+#        uses: webfactory/ssh-agent@v0.8.0
+#        with:
+#          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+#
+#      - name: Deploy to VM
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+#            cd ~/Solvr || { echo "❌ Directory Solvr not found"; exit 1; }
+#
+#            echo "🔪 Killing existing app..."
+#            pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
+#
+#            echo "📥 Pulling latest code..."
+#            sudo git pull origin main
+#
+#            echo "🧹 Building the app..."
+#            sudo mvn clean package -DskipTests
+#
+#            echo "🚀 Running the app in background..."
+#            nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
+#          EOF
+
+
+
 name: Deploy Spring Boot to Ubuntu VM
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main  # Sesuaikan dengan branch kamu
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
-          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Deploy to VM
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
-            cd ~/Solvr || { echo "❌ Directory Solvr not found"; exit 1; }
-          
-            echo "🔪 Killing existing app..."
-            pkill -f 'solvr-0.0.1-SNAPSHOT.jar' || true
-          
-            echo "📥 Pulling latest code..."
-            git pull origin main
-          
-            echo "🧹 Building the app..."
-            mvn clean package -DskipTests
-          
-            echo "🚀 Running the app in background..."
-            nohup java -jar target/solvr-0.0.1-SNAPSHOT.jar > solvr.log 2>&1 &
-          EOF
+      - name: Build Spring Boot App (Maven)
+        run: ./mvnw clean package -DskipTests
+
+      - name: Copy JAR to Ubuntu VM
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "target/*.jar"
+          target: "/var/www/yourapp/app.jar"
+
+      - name: Restart Spring Boot App on Ubuntu VM
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            pkill -f 'java' || true
+            cd /var/www/yourapp
+            nohup java -jar app.jar --spring.profiles.active=prod > app.log 2>&1 &
+            echo "App deployed and running!"
