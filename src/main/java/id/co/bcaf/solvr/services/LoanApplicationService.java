@@ -222,7 +222,10 @@ public class LoanApplicationService {
         userCustomer.setMotherName(customer.getMotherName());
         userCustomer.setMonthlyIncome(customer.getMonthlyIncome());
         userCustomer.setTotalPaidLoan(customer.getTotalPaidLoan());
-        userCustomer.setAccountNumber(customer.getAccountNumber()); // Missing field
+        userCustomer.setAccountNumber(customer.getAccountNumber());
+
+        userCustomer.setUrlSelfieWithKtp(customer.getUrlSelfieWithKtp());
+        userCustomer.setUrlKtp(customer.getUrlKtp());
 
         response.setUserCustomer(userCustomer);
         response.setName(customer.getUser().getName()); // Set name field
