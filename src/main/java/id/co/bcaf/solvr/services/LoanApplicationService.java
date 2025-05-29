@@ -75,7 +75,7 @@ public class LoanApplicationService {
         loanApplication.setUserCustomer(userCustomer);
 
         List<LoanApplication> activeLoans = loanApplicationRepository
-                .findByUserCustomerAndStatusNot(userCustomer, "LUNAS");
+                .findByUserCustomerAndStatus(userCustomer, "LUNAS");
 
         List<LoanApplication> requestedLoans = loanApplicationRepository
                 .findByUserCustomerAndStatus(userCustomer, "REQUEST");
