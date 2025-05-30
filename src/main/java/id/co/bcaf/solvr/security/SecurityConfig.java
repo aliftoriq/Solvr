@@ -47,6 +47,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:4200",
                 "https://solvr-4i1wieglc-alifs-projects-d5a33945.vercel.app",
+                "https://solvr-web.vercel.app",
                 "http://solvr-web.aliftoriq.my.id"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
