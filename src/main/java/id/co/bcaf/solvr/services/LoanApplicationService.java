@@ -14,6 +14,8 @@ import id.co.bcaf.solvr.repository.LoanApplicationToEmployeeRepository;
 import id.co.bcaf.solvr.repository.UserEmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,26 +26,20 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class LoanApplicationService {
-    @Autowired
     private LoanApplicationRepository loanApplicationRepository;
 
-    @Autowired
     private LoanApplicationToEmployeeRepository loanAplicationToEmployeeRepository;
 
-    @Autowired
-    UserService userService;
+    private UserService userService;
 
-    @Autowired
     private UserEmployeeRepository userEmployeeRepository;
 
-    @Autowired
     private UserCustomerService userCustomerService;
 
-    @Autowired
     private BranchService branchService;
 
-    @Autowired
     private FirebaseService firebaseService;
 
 
@@ -62,6 +58,10 @@ public class LoanApplicationService {
         if(userCustomer == null) {
             log.error("UserCustomer dengan ID " + userCustomerId + " tidak ditemukan");
             throw new EntityNotFoundException("UserCustomer dengan ID " + userCustomerId + " tidak ditemukan");
+        }
+
+        if(userCustomer.getUrlKtp() == null || userCustomer.getUrlKtp().isEmpty()) {
+            throw new CustomException.InvalidInputException("UserCustomer belum mengunggah KTP");
         }
 
         LoanApplication loanApplication = new LoanApplication();
@@ -131,10 +131,8 @@ public class LoanApplicationService {
 
         List<LoanApplicationToEmployee> employeeAssignments = new ArrayList<>();
 
-        // Set Request
         loanApplication.setStatus("REQUEST");
 
-        // Set Monthly Payment
         double ratePerMonth = plafonPackage.getInterestRate() / 12 / 100;
         int tenor = loanApplication.getLoanTenor();
         double monthlyInstallment = (newAmount * ratePerMonth) / (1 - Math.pow(1 + ratePerMonth, -tenor));
@@ -142,7 +140,6 @@ public class LoanApplicationService {
 
         loanApplication.setHousingStatus(userCustomer.getHousingStatus());
 
-        // Inisialisasi untuk pemilihan marketing
         List<UserEmployee> marketingList = new ArrayList<>();
 
         for (UserEmployee userEmployee : userEmployeeList) {
