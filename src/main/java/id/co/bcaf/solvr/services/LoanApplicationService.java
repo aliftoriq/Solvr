@@ -26,20 +26,26 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class LoanApplicationService {
+    @Autowired
     private LoanApplicationRepository loanApplicationRepository;
 
+    @Autowired
     private LoanApplicationToEmployeeRepository loanAplicationToEmployeeRepository;
 
+    @Autowired
     private UserService userService;
 
+    @Autowired
     private UserEmployeeRepository userEmployeeRepository;
 
+    @Autowired
     private UserCustomerService userCustomerService;
 
+    @Autowired
     private BranchService branchService;
 
+    @Autowired
     private FirebaseService firebaseService;
 
 
