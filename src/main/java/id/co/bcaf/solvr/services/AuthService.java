@@ -62,7 +62,6 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerified(false);
 
-        // Set default role jika kosong
         if (user.getRole() == null) {
             Role defaultRole = new Role();
             defaultRole.setId(2);
@@ -71,23 +70,40 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // Generate token JWT untuk verifikasi email
         String token = jwtUtil.generateVerificationToken(savedUser.getUsername());
 
-        // Hash token & simpan
         String hashedToken = passwordEncoder.encode(token);
         savedUser.setVerifyTokenHash(hashedToken);
         userRepository.save(savedUser);
 
-        // Buat URL verifikasi
-        String verifyUrl = "http://localhost:8080/api/auth/verify?token=" + token;
+        String verifyUrl = "https://solvr-web.vercel.app/verify-email?token=" + token;
 
-        // Kirim email
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(savedUser.getUsername());
-        message.setSubject("Verifikasi Akun Solvr Anda");
-        message.setText("Klik link berikut untuk verifikasi akun Anda:\n" + verifyUrl);
-        mailSender.send(message);
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                    "<h2 style=\"color: #2b8a3e;\">Verifikasi Akun Anda</h2>" +
+                    "<p>Halo <strong>" + user.getName() + "</strong>,</p>" + // Jika user.getName() tersedia
+                    "<p>Terima kasih telah mendaftar di <strong>Solvr</strong>.</p>" +
+                    "<p>Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini:</p>" +
+                    "<a href=\"" + verifyUrl + "\" style=\"display: inline-block; padding: 10px 20px; background-color: #2b8a3e; color: white; text-decoration: none; border-radius: 5px;\">Verifikasi Akun</a>" +
+                    "<p style=\"margin-top: 20px;\">Tautan ini berlaku selama 15 menit.</p>" +
+                    "<hr style=\"margin-top: 30px;\">" +
+                    "<p style=\"font-size: 12px; color: #999;\">Jika Anda tidak merasa melakukan pendaftaran, silakan abaikan email ini.</p>" +
+                    "</div>";
+
+            helper.setTo(user.getUsername());
+            helper.setSubject("Verifikasi Akun Solvr Anda");
+            helper.setText(htmlContent, true); // true = HTML
+
+            mailSender.send(mimeMessage);
+            logger.info("Email verifikasi berhasil dikirim ke: {}", user.getUsername());
+
+        } catch (MessagingException e) {
+            logger.error("Gagal mengirim email verifikasi", e);
+            throw new RuntimeException("Gagal mengirim email verifikasi");
+        }
 
         return userService.getUserById(savedUser.getId());
     }
@@ -242,7 +258,7 @@ public class AuthService {
 
         resetTokenRepository.save(resetToken);
 
-        String resetUrl = "https://solvr-web.vercel.app/verify-email?token=" + token;
+        String resetUrl = "https://solvr-web.vercel.app/reset-passwordl?token=" + token;
 
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -261,7 +277,7 @@ public class AuthService {
 
             helper.setTo(user.getUsername());
             helper.setSubject("Reset Password Request");
-            helper.setText(htmlContent, true); // true = HTML
+            helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
             logger.info("Password reset email sent to: {}", user.getUsername());
