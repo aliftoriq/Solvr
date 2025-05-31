@@ -258,7 +258,7 @@ public class AuthService {
 
         resetTokenRepository.save(resetToken);
 
-        String resetUrl = "https://solvr-web.vercel.app/reset-passwordl?token=" + token;
+        String resetUrl = "https://solvr-web.vercel.app/reset-password?token=" + token;
 
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
