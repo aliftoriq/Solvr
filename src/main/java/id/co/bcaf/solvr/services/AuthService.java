@@ -10,10 +10,13 @@ import id.co.bcaf.solvr.model.account.*;
 import id.co.bcaf.solvr.repository.PasswordTokenRepository;
 import id.co.bcaf.solvr.repository.UserRepository;
 import id.co.bcaf.solvr.utils.JwtUtil;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -239,14 +242,35 @@ public class AuthService {
 
         resetTokenRepository.save(resetToken);
 
-        String resetUrl = "http://localhost:4200/reset-password?token=" + token;
+        String resetUrl = "https://solvr-web.vercel.app/verify-email?token=" + token;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getUsername());
-        message.setSubject("Reset Password Request");
-        message.setText("Click the following link to reset your password:\n" + resetUrl + "\n\nThis link will expire in 15 minutes.");
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-        mailSender.send(message);
+            String htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                    "<h2 style=\"color: #2b8a3e;\">Reset Password Request</h2>" +
+                    "<p>Hello <strong>" + user.getName() + "</strong>,</p>" +  // opsional, kalau ada nama
+                    "<p>We received a request to reset your password.</p>" +
+                    "<p>Please click the button below to reset your password:</p>" +
+                    "<a href=\"" + resetUrl + "\" style=\"display: inline-block; padding: 10px 20px; background-color: #2b8a3e; color: white; text-decoration: none; border-radius: 5px;\">Reset Password</a>" +
+                    "<p style=\"margin-top: 20px;\">This link will expire in 15 minutes.</p>" +
+                    "<hr style=\"margin-top: 30px;\">" +
+                    "<p style=\"font-size: 12px; color: #999;\">If you didn't request a password reset, please ignore this email.</p>" +
+                    "</div>";
+
+            helper.setTo(user.getUsername());
+            helper.setSubject("Reset Password Request");
+            helper.setText(htmlContent, true); // true = HTML
+
+            mailSender.send(mimeMessage);
+            logger.info("Password reset email sent to: {}", user.getUsername());
+
+        } catch (MessagingException e) {
+            logger.error("Failed to send email", e);
+            throw new RuntimeException("Failed to send email");
+        }
+
         logger.info("Password reset link sent to: {}", user.getUsername());
 
         return "Reset link sent to your email.";
