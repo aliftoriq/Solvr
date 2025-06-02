@@ -88,7 +88,7 @@ public class AuthService {
                     "<p>Terima kasih telah mendaftar di <strong>Solvr</strong>.</p>" +
                     "<p>Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini:</p>" +
                     "<a href=\"" + verifyUrl + "\" style=\"display: inline-block; padding: 10px 20px; background-color: #2b8a3e; color: white; text-decoration: none; border-radius: 5px;\">Verifikasi Akun</a>" +
-                    "<p style=\"margin-top: 20px;\">Tautan ini berlaku selama 15 menit.</p>" +
+                    "<p style=\"margin-top: 20px;\">Tautan ini berlaku selama 30 hari.</p>" +
                     "<hr style=\"margin-top: 30px;\">" +
                     "<p style=\"font-size: 12px; color: #999;\">Jika Anda tidak merasa melakukan pendaftaran, silakan abaikan email ini.</p>" +
                     "</div>";
@@ -110,41 +110,35 @@ public class AuthService {
 
     @Transactional
     public void verifyEmail(String token) {
-        Optional<User> matchedUser = userRepository.findAll().stream()
+        Optional<User> userOptional = userRepository.findAll().stream()
                 .filter(user -> user.getVerifyTokenHash() != null && passwordEncoder.matches(token, user.getVerifyTokenHash()))
                 .findFirst();
 
-        if (matchedUser.isPresent()) {
-            User user = matchedUser.get();
+        if (userOptional.isEmpty()) {
+            String username = jwtUtil.extractusername(token);
+            Optional<User> userByUsername = userRepository.findByUsername(username);
 
-            if (user.isVerified()) {
-                throw new CustomException.InvalidInputException("User already verified.");
+            if (userByUsername.isPresent()) {
+                User user = userByUsername.get();
+                if (!user.isVerified()) {
+                    jwtUtil.generateVerificationToken(user.getUsername());
+                }
             }
 
-            user.setVerified(true);
-            user.setVerifyTokenHash(null);
-            userRepository.save(user);
-            return;
+            throw new CustomException.InvalidInputException("Token tidak valid atau sudah kedaluwarsa. Email verifikasi baru telah dikirim.");
         }
 
-        Optional<User> unverifiedUser = userRepository.findAll().stream()
-                .filter(user -> !user.isVerified())
-                .findFirst();
+        User user = userOptional.get();
 
-        if (unverifiedUser.isPresent()) {
-            User user = unverifiedUser.get();
-
-            String newToken = UUID.randomUUID().toString();
-            String hashedToken = passwordEncoder.encode(newToken);
-            user.setVerifyTokenHash(hashedToken);
-            userRepository.save(user);
-
-            String verifyUrl = "https://solvr-web.vercel.app/verify-email?token=" + hashedToken;
-            sendVerificationEmail(user, verifyUrl);
+        if (user.isVerified()) {
+            throw new CustomException.InvalidInputException("Akun sudah terverifikasi.");
         }
 
-        throw new CustomException.InvalidInputException("Token invalid atau expired. Kami telah mengirim email verifikasi ulang.");
+        user.setVerified(true);
+        user.setVerifyTokenHash(null);
+        userRepository.save(user);
     }
+
 
 
 
