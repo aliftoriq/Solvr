@@ -70,8 +70,13 @@ public class SecurityConfig {
                 "http://solvr-web.aliftoriq.my.id"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"
+        ));
         configuration.setAllowCredentials(true);
+//        configuration.addAllowedHeader("*");
+//        configuration.addAllowedOriginPattern("*");
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
