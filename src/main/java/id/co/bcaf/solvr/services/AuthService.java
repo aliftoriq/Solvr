@@ -115,6 +115,7 @@ public class AuthService {
                 .findFirst();
 
         if (userOptional.isEmpty()) {
+            sendVerificationEmail(userOptional.get(), "https://solvr-web.vercel.app/verify-email?token=" + token);
             throw new CustomException.InvalidInputException("Invalid or expired verification token.");
         }
 
@@ -127,6 +128,35 @@ public class AuthService {
         user.setVerified(true);
         user.setVerifyTokenHash(null);
         userRepository.save(user);
+    }
+
+    public void sendVerificationEmail(User user, String verifyUrl) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                    "<h2 style=\"color: #2b8a3e;\">Verifikasi Akun Anda</h2>" +
+                    "<p>Halo <strong>" + user.getName() + "</strong>,</p>" +
+                    "<p>Terima kasih telah mendaftar di <strong>Solvr</strong>.</p>" +
+                    "<p>Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini:</p>" +
+                    "<a href=\"" + verifyUrl + "\" style=\"display: inline-block; padding: 10px 20px; background-color: #2b8a3e; color: white; text-decoration: none; border-radius: 5px;\">Verifikasi Akun</a>" +
+                    "<p style=\"margin-top: 20px;\">Tautan ini berlaku selama 15 menit.</p>" +
+                    "<hr style=\"margin-top: 30px;\">" +
+                    "<p style=\"font-size: 12px; color: #999;\">Jika Anda tidak merasa melakukan pendaftaran, silakan abaikan email ini.</p>" +
+                    "</div>";
+
+            helper.setTo(user.getUsername()); // biasanya username adalah email
+            helper.setSubject("Verifikasi Akun Solvr Anda");
+            helper.setText(htmlContent, true); // true = HTML
+
+            mailSender.send(mimeMessage);
+            logger.info("Email verifikasi berhasil dikirim ke: {}", user.getUsername());
+
+        } catch (MessagingException e) {
+            logger.error("Gagal mengirim email verifikasi", e);
+            throw new RuntimeException("Gagal mengirim email verifikasi");
+        }
     }
 
 

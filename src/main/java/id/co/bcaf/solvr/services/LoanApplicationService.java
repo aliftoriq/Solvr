@@ -12,17 +12,22 @@ import id.co.bcaf.solvr.model.account.*;
 import id.co.bcaf.solvr.repository.LoanApplicationRepository;
 import id.co.bcaf.solvr.repository.LoanApplicationToEmployeeRepository;
 import id.co.bcaf.solvr.repository.UserEmployeeRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -48,11 +53,14 @@ public class LoanApplicationService {
     @Autowired
     private FirebaseService firebaseService;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
 
     public LoanApplication createApplication(UUID userID, LoanApplicationRequest loanApplicationRequest) {
         User user = userService.getUserById(userID);
 
-        if(user == null) {
+        if (user == null) {
             log.error("User dengan ID " + userID + " tidak ditemukan");
             throw new EntityNotFoundException("User dengan ID " + userID + " tidak ditemukan");
         }
@@ -61,12 +69,12 @@ public class LoanApplicationService {
 
         UserCustomer userCustomer = userCustomerService.getUserCustomerById(userCustomerId);
 
-        if(userCustomer == null) {
+        if (userCustomer == null) {
             log.error("UserCustomer dengan ID " + userCustomerId + " tidak ditemukan");
             throw new EntityNotFoundException("UserCustomer dengan ID " + userCustomerId + " tidak ditemukan");
         }
 
-        if(userCustomer.getUrlKtp() == null || userCustomer.getUrlKtp().isEmpty()) {
+        if (userCustomer.getUrlKtp() == null || userCustomer.getUrlKtp().isEmpty()) {
             throw new CustomException.InvalidInputException("UserCustomer belum mengunggah KTP");
         }
 
@@ -535,20 +543,22 @@ public class LoanApplicationService {
 
         List<FirebaseToken> firebaseToken = firebaseService.getFirebaseTokenByCustomer(customerId);
 
-        if (firebaseToken.isEmpty()) {
-            throw new EntityNotFoundException("Firebase token tidak ditemukan");
+        if (!firebaseToken.isEmpty()) {
+
+            FirebaseNotificationRequest request = new FirebaseNotificationRequest();
+            request.setTitle("Solvr");
+            request.setBody("Pengajuan Kamu telah di setujui");
+
+            for (FirebaseToken token : firebaseToken) {
+                request.setToken(token.getToken());
+                firebaseService.sendNotification(request);
+            }
+
+            firebaseService.saveNotification(userId, request);
         }
 
-        FirebaseNotificationRequest request = new FirebaseNotificationRequest();
-        request.setTitle("Solvr");
-        request.setBody("Pengajuan Kamu telah di setujui");
+        sendLoanStatusEmail(loanApplication.getUserCustomer().getUser(), "APPROVED", notes);
 
-        for (FirebaseToken token : firebaseToken) {
-            request.setToken(token.getToken());
-            firebaseService.sendNotification(request);
-        }
-
-        firebaseService.saveNotification(userId,request);
 
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
@@ -572,7 +582,6 @@ public class LoanApplicationService {
                 .orElseThrow(() -> new EntityNotFoundException("LAE tidak ditemukan untuk employee ID: " + userEmployeeId));
 
 
-        // Atau langsung update:
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
 
@@ -580,23 +589,89 @@ public class LoanApplicationService {
 
         List<FirebaseToken> firebaseToken = firebaseService.getFirebaseTokenByCustomer(customerId);
 
-        if (firebaseToken.isEmpty()) {
-            throw new EntityNotFoundException("Firebase token tidak ditemukan");
+        if (!firebaseToken.isEmpty()) {
+            FirebaseNotificationRequest request = new FirebaseNotificationRequest();
+            request.setTitle("Solvr");
+            request.setBody("Uang telah di kirim, Segera cek rekening kamu yah!");
+
+            for (FirebaseToken token : firebaseToken) {
+                request.setToken(token.getToken());
+                firebaseService.sendNotification(request);
+            }
+
+            firebaseService.saveNotification(userId, request);
         }
 
-        FirebaseNotificationRequest request = new FirebaseNotificationRequest();
-        request.setTitle("Solvr");
-        request.setBody("Uang telah di kirim, Segera cek rekening kamu yah!");
+        sendLoanStatusEmail(loanApplication.getUserCustomer().getUser(), "DISBURSEMENT", notes);
 
-        for (FirebaseToken token : firebaseToken) {
-            request.setToken(token.getToken());
-            firebaseService.sendNotification(request);
-        }
-
-        firebaseService.saveNotification(userId,request);
 
         return loanApplicationRepository.save(loanApplication);
     }
+
+    public void sendLoanStatusEmail(User user, String status, String notes) {
+        String subject;
+        String htmlContent;
+        String name = user.getName();
+
+        switch (status.toUpperCase()) {
+            case "APPROVED":
+                subject = "Pengajuan Kamu Disetujui - Solvr";
+                htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                        "<h2 style=\"color: #2b8a3e;\">Pengajuan Kamu Disetujui 🎉</h2>" +
+                        "<p>Halo <strong>" + name + "</strong>,</p>" +
+                        "<p>Selamat! Pengajuan pinjaman kamu di <strong>Solvr</strong> telah <strong>disetujui</strong>.</p>" +
+                        "<p>Kami akan segera mencairkan dana ke rekening kamu setelah proses selanjutnya selesai.</p>" +
+                        "<p style=\"margin-top: 20px;\">Terima kasih telah menggunakan layanan Solvr!</p>" +
+                        "<hr style=\"margin-top: 30px;\">" +
+                        "<p style=\"font-size: 12px; color: #999;\">Email ini dikirim secara otomatis, mohon tidak dibalas.</p>" +
+                        "</div>";
+                break;
+
+            case "DISBURSEMENT":
+                subject = "Dana Kamu Sudah Cair - Solvr";
+                htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                        "<h2 style=\"color: #2b8a3e;\">Dana Kamu Sudah Dikirim 💰</h2>" +
+                        "<p>Halo <strong>" + name + "</strong>,</p>" +
+                        "<p>Pengajuan kamu di <strong>Solvr</strong> telah berhasil dicairkan.</p>" +
+                        "<p>Silakan cek rekening kamu sekarang. Dana sudah dikirimkan ke rekening yang terdaftar.</p>" +
+                        "<p style=\"margin-top: 20px;\">Jika ada pertanyaan, silakan hubungi tim Solvr.</p>" +
+                        "<hr style=\"margin-top: 30px;\">" +
+                        "<p style=\"font-size: 12px; color: #999;\">Email ini dikirim secara otomatis, mohon tidak dibalas.</p>" +
+                        "</div>";
+                break;
+
+            case "REJECTED":
+                subject = "Pengajuan Kamu Ditolak - Solvr";
+                htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
+                        "<h2 style=\"color: #d9534f;\">Pengajuan Kamu Ditolak 😞</h2>" +
+                        "<p>Halo <strong>" + name + "</strong>,</p>" +
+                        "<p>Kami mohon maaf, pengajuan kamu di <strong>Solvr</strong> belum dapat disetujui.</p>" +
+                        "<p>Catatan dari tim kami: <em>" + notes + "</em></p>" +
+                        "<p>Kamu bisa mencoba kembali setelah memperbarui informasi atau menunggu beberapa waktu.</p>" +
+                        "<p style=\"margin-top: 20px;\">Terima kasih telah menggunakan Solvr.</p>" +
+                        "<hr style=\"margin-top: 30px;\">" +
+                        "<p style=\"font-size: 12px; color: #999;\">Email ini dikirim secara otomatis, mohon tidak dibalas.</p>" +
+                        "</div>";
+                break;
+
+            default:
+                throw new IllegalArgumentException("Status email tidak dikenali: " + status);
+        }
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setTo(user.getUsername());
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Gagal mengirim email status pinjaman");
+        }
+    }
+
 
     @Transactional
     public LoanApplication rejectLoanApplication(UUID userId, UUID loanAppId, String notes) {
@@ -616,6 +691,8 @@ public class LoanApplicationService {
         // Atau langsung update:
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
+
+        sendLoanStatusEmail(loanApplication.getUserCustomer().getUser(), "REJECTED", notes);
 
         return loanApplicationRepository.save(loanApplication);
     }
@@ -659,7 +736,7 @@ public class LoanApplicationService {
         response.setAdminFee(adminFee);
         response.setRate(plafon.getInterestRate());
         response.setAmount(amount);
-        response.setAmountDisbursed(amount-adminFee);
+        response.setAmountDisbursed(amount - adminFee);
         response.setTenor(tenor);
         response.setAccountNumber(userCustomer.getAccountNumber());
         response.setAddress(userCustomer.getAddress());
