@@ -115,30 +115,19 @@ public class AuthService {
                 .findFirst();
 
         if (userOptional.isEmpty()) {
-            String username = jwtUtil.extractusername(token);
-            Optional<User> userByUsername = userRepository.findByUsername(username);
-
-            if (userByUsername.isPresent()) {
-                User user = userByUsername.get();
-                if (!user.isVerified()) {
-                    jwtUtil.generateVerificationToken(user.getUsername());
-                }
-            }
-
-            throw new CustomException.InvalidInputException("Token tidak valid atau sudah kedaluwarsa. Email verifikasi baru telah dikirim.");
+            throw new CustomException.InvalidInputException("Invalid or expired verification token.");
         }
 
         User user = userOptional.get();
 
         if (user.isVerified()) {
-            throw new CustomException.InvalidInputException("Akun sudah terverifikasi.");
+            throw new CustomException.InvalidInputException("User already verified.");
         }
 
         user.setVerified(true);
         user.setVerifyTokenHash(null);
         userRepository.save(user);
     }
-
 
 
 
