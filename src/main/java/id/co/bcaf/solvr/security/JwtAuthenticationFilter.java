@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.path;
+
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
@@ -79,7 +81,17 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
 
-        if (PUBLIC_URLS.contains(requestURI)) {
+        if (path.startsWith("/api/v1/auth/login") ||
+                path.startsWith("/api/v1/auth/register") ||
+                path.startsWith("/api/v1/auth/verify") ||
+                path.startsWith("/api/v1/auth/reset-password") ||
+                path.startsWith("/api/v1/auth/forget-password") ||
+                path.startsWith("/api/v1/auth/change-password") ||
+                path.startsWith("/api/v1/auth/firebase-login") ||
+                path.startsWith("/api/v1/plafon/all") ||
+                path.startsWith("/api/v1/notification")
+
+        ) {
             chain.doFilter(request, response);
             return;
         }
@@ -114,7 +126,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 List<RoleToFeature> features = featureService.getRoleToFeatureByRole(roleModel);
                 List<String> featuresList = features.stream().map(RoleToFeature::getFeature).map(Feature::getName).toList();
 
-                List<GrantedAuthority> authorities =featuresList.stream()
+                List<GrantedAuthority> authorities = featuresList.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
                 authorities.add(new SimpleGrantedAuthority(roleWithPrefix));
