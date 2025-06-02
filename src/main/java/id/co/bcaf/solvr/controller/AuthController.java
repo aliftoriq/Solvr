@@ -132,8 +132,8 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Verifikasi Email Terkirim", httpResponse));
     }
 
-    @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestBody String token) {
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestParam("token") String token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok(new ResponseTemplate(200, "Email verified successfully.", null));
     }
