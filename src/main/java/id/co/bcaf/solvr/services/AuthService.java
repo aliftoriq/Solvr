@@ -164,6 +164,44 @@ public class AuthService {
         );
     }
 
+    public LoginResponse authenticateEmployee(String username, String password) {
+        logger.info("Login attempt for : {}", username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException.UserNotFoundException("User dengan email tersebut tidak ditemukan."));
+
+        if(user.getRole().getName().equals("CUSTOMER")) {
+            throw new CustomException.UserNotFoundException("User dengan email tersebut tidak ditemukan.");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            logger.warn("Wrong password for: {}", username);
+            throw new CustomException.InvalidInputException("Username atau password salah.");
+        }
+
+        logger.info("Successful login for user: {}", user.getUsername());
+
+        List<RoleToFeature> roleToFeatures = featureService.getRoleToFeatureByRole(user.getRole());
+
+        List<String> features = roleToFeatures.stream()
+                .map(RoleToFeature::getFeature)
+                .map(Feature::getName)
+                .collect(Collectors.toList());
+
+        return new LoginResponse(
+                jwtUtil.generateToken(username, user.getRole().getName(), user.getId()),
+                features,
+                new UserResponse(
+                        user.getName(),
+                        user.getUsername(),
+                        user.getRole().getName(),
+                        user.getStatus(),
+                        user.isVerified(),
+                        user.isDeleted()
+                )
+        );
+    }
+
 
     public LoginResponse authenticateUserFromFirebaseToken(String firebaseToken) throws FirebaseAuthException {
         logger.info("Authenticating Firebase token...");

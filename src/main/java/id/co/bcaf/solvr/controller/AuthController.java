@@ -56,6 +56,20 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", loginResponse));
     }
 
+    @PostMapping("/login-employee")
+    public ResponseEntity<?> loginEmployee(@RequestBody RequestHttpDTO.LoginRequest loginRequest) {
+        logger.info("Login attempt for username: {}", loginRequest.getUsername());
+
+        LoginResponse loginResponse = authService.authenticateEmployee(
+                loginRequest.getUsername(),
+                loginRequest.getPassword()
+        );
+
+        logger.info("Successful login for username: {}", loginRequest.getUsername());
+
+        return ResponseEntity.ok(new ResponseTemplate(200, "Success", loginResponse));
+    }
+
 
     @PostMapping("/firebase-login")
     public ResponseEntity<?> firebaseLogin(@RequestBody RequestHttpDTO.LoginFirebaseRequest payload) {
