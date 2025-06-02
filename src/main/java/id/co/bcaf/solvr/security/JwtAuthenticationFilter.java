@@ -79,30 +79,30 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String requestURI = httpRequest.getRequestURI();
         String authHeader = httpRequest.getHeader("Authorization");
 
-        if (requestURI.startsWith("/api/v1/auth/login") ||
-                requestURI.startsWith("/api/v1/auth/register") ||
-                requestURI.startsWith("/api/v1/auth/verify") ||
-                requestURI.startsWith("/api/v1/auth/reset-password") ||
-                requestURI.startsWith("/api/v1/auth/forget-password") ||
-                requestURI.startsWith("/api/v1/auth/change-password") ||
-                requestURI.startsWith("/api/v1/auth/firebase-login") ||
-                requestURI.startsWith("/api/v1/plafon/all") ||
-                requestURI.startsWith("/api/v1/notification") ||
-
-                requestURI.startsWith("/be/api/v1/auth/login") ||
-                requestURI.startsWith("/be/api/v1/auth/register") ||
-                requestURI.startsWith("/be/api/v1/auth/verify") ||
-                requestURI.startsWith("/be/api/v1/auth/reset-password") ||
-                requestURI.startsWith("/be/api/v1/auth/forget-password") ||
-                requestURI.startsWith("/be/api/v1/auth/change-password") ||
-                requestURI.startsWith("/be/api/v1/auth/firebase-login") ||
-                requestURI.startsWith("/be/api/v1/plafon/all") ||
-                requestURI.startsWith("/be/api/v1/notification")
-
-        ) {
-            chain.doFilter(request, response);
-            return;
-        }
+//        if (requestURI.startsWith("/api/v1/auth/login") ||
+//                requestURI.startsWith("/api/v1/auth/register") ||
+//                requestURI.startsWith("/api/v1/auth/verify") ||
+//                requestURI.startsWith("/api/v1/auth/reset-password") ||
+//                requestURI.startsWith("/api/v1/auth/forget-password") ||
+//                requestURI.startsWith("/api/v1/auth/change-password") ||
+//                requestURI.startsWith("/api/v1/auth/firebase-login") ||
+//                requestURI.startsWith("/api/v1/plafon/all") ||
+//                requestURI.startsWith("/api/v1/notification") ||
+//
+//                requestURI.startsWith("/be/api/v1/auth/login") ||
+//                requestURI.startsWith("/be/api/v1/auth/register") ||
+//                requestURI.startsWith("/be/api/v1/auth/verify") ||
+//                requestURI.startsWith("/be/api/v1/auth/reset-password") ||
+//                requestURI.startsWith("/be/api/v1/auth/forget-password") ||
+//                requestURI.startsWith("/be/api/v1/auth/change-password") ||
+//                requestURI.startsWith("/be/api/v1/auth/firebase-login") ||
+//                requestURI.startsWith("/be/api/v1/plafon/all") ||
+//                requestURI.startsWith("/be/api/v1/notification")
+//
+//        ) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         logger.warn("Incoming URI: " + requestURI);
 
