@@ -1,12 +1,14 @@
 package id.co.bcaf.solvr.services;
 
 import id.co.bcaf.solvr.model.account.Branch;
+import id.co.bcaf.solvr.model.account.UserEmployee;
 import id.co.bcaf.solvr.repository.BranchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -26,18 +28,36 @@ public class BranchService {
     public Branch getNearestBranch(double latitude, double longitude) {
         List<Branch> allBranch = branchRepository.findAll();
 
-        if(allBranch.isEmpty()) {
+        if (allBranch.isEmpty()) {
             throw new RuntimeException("Branch is empty");
         }
-
-        return allBranch.stream()
-                .min(Comparator.comparingDouble(branch ->
+        
+        List<Branch> sortedBranches = allBranch.stream()
+                .sorted(Comparator.comparingDouble(branch ->
                         haversineDistance(latitude, longitude, branch.getLatitude(), branch.getLongitude())))
-                .orElse(null);
+                .toList();
+
+        for (Branch branch : sortedBranches) {
+            Set<UserEmployee> employees = branch.getEmployees();
+
+            boolean hasBM = employees.stream()
+                    .anyMatch(e -> e.getUser().getRole().getName().equalsIgnoreCase("BRANCH MANAGER"));
+            boolean hasBackOffice = employees.stream()
+                    .anyMatch(e -> e.getUser().getRole().getName().equalsIgnoreCase("BACK OFFICE"));
+            boolean hasMarketing = employees.stream()
+                    .anyMatch(e -> e.getUser().getRole().getName().equalsIgnoreCase("MARKETING"));
+
+            if (hasBM && hasBackOffice && hasMarketing) {
+                return branch;
+            }
+        }
+
+        throw new RuntimeException("No nearby branch has complete roles (BM, Back Office, Marketing)");
     }
 
+
     private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Radius of the earth in km
+        final int R = 6371;
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
@@ -50,4 +70,5 @@ public class BranchService {
     public void deleteBranch(UUID id) {
         branchRepository.deleteById(id);
     }
+
 }

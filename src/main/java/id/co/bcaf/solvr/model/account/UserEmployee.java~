@@ -24,13 +24,14 @@ public class UserEmployee {
     private String department;
 
     @ManyToOne
+    
     private Branch branch;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<LoanApplication> loanApplications;
 
-    @OneToOne(mappedBy = "userEmployee", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "userEmployee", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private User user;
 }

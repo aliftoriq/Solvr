@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-/src/main/resources/application.properties
+#/src/main/resources/application.properties
 /src/main/resources/solvr-26c8f-firebase-adminsdk-fbsvc-9cb8ce5f3d.json
 /src/main/resources/*.json
 
