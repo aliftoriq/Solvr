@@ -115,7 +115,6 @@ public class AuthService {
                 .findFirst();
 
         if (userOptional.isEmpty()) {
-            sendVerificationEmail(userOptional.get(), "https://solvr-web.vercel.app/verify-email?token=" + token);
             throw new CustomException.InvalidInputException("Invalid or expired verification token.");
         }
 
@@ -129,6 +128,9 @@ public class AuthService {
         user.setVerifyTokenHash(null);
         userRepository.save(user);
     }
+
+
+
 
     public void sendVerificationEmail(User user, String verifyUrl) {
         try {
