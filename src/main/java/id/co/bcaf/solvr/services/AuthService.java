@@ -110,24 +110,42 @@ public class AuthService {
 
     @Transactional
     public void verifyEmail(String token) {
-        Optional<User> userOptional = userRepository.findAll().stream()
+        Optional<User> matchedUser = userRepository.findAll().stream()
                 .filter(user -> user.getVerifyTokenHash() != null && passwordEncoder.matches(token, user.getVerifyTokenHash()))
                 .findFirst();
 
-        if (userOptional.isEmpty()) {
-            throw new CustomException.InvalidInputException("Invalid or expired verification token.");
+        if (matchedUser.isPresent()) {
+            User user = matchedUser.get();
+
+            if (user.isVerified()) {
+                throw new CustomException.InvalidInputException("User already verified.");
+            }
+
+            user.setVerified(true);
+            user.setVerifyTokenHash(null);
+            userRepository.save(user);
+            return;
         }
 
-        User user = userOptional.get();
+        Optional<User> unverifiedUser = userRepository.findAll().stream()
+                .filter(user -> !user.isVerified())
+                .findFirst();
 
-        if (user.isVerified()) {
-            throw new CustomException.InvalidInputException("User already verified.");
+        if (unverifiedUser.isPresent()) {
+            User user = unverifiedUser.get();
+
+            String newToken = UUID.randomUUID().toString();
+            String hashedToken = passwordEncoder.encode(newToken);
+            user.setVerifyTokenHash(hashedToken);
+            userRepository.save(user);
+
+            String verifyUrl = "https://solvr-web.vercel.app/verify-email?token=" + newToken;
+            sendVerificationEmail(user, verifyUrl);
         }
 
-        user.setVerified(true);
-        user.setVerifyTokenHash(null);
-        userRepository.save(user);
+        throw new CustomException.InvalidInputException("Token invalid atau expired. Kami telah mengirim email verifikasi ulang.");
     }
+
 
 
 
