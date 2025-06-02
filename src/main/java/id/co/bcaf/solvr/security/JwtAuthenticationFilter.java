@@ -48,7 +48,27 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     @Autowired
     private FeatureService featureService;
 
+    private static final List<String> PUBLIC_URLS = List.of(
+            "/be/api/v1/auth/register",
+            "/be/api/v1/auth/login",
+            "/be/api/v1/auth/verify",
+            "/be/api/v1/auth/reset-password",
+            "/be/api/v1/auth/forget-password",
+            "/be/api/v1/auth/change-password",
+            "/be/api/v1/auth/firebase-login",
+            "/be/api/v1/plafon/all",
+            "/be/api/v1/notification",
 
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/verify",
+            "/api/v1/auth/reset-password",
+            "/api/v1/auth/forget-password",
+            "/api/v1/auth/change-password",
+            "/api/v1/auth/firebase-login",
+            "/api/v1/plafon/all",
+            "/api/v1/notification"
+    );
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -58,6 +78,11 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String authHeader = httpRequest.getHeader("Authorization");
 
         logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
+
+        if (PUBLIC_URLS.contains(requestURI)) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         // Check for Authorization header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
