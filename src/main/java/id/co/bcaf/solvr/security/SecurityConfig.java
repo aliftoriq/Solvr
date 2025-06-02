@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/login-employee",
                                 "/api/v1/auth/verify",
+                                "/api/v1/auth/verify/**",
                                 "/api/v1/auth/reset-password",
                                 "/api/v1/auth/forget-password",
                                 "/api/v1/auth/change-password",
