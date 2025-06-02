@@ -138,6 +138,13 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Email verified successfully.", null));
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyUserEmail(@RequestBody VerifyRequest verifyRequest) {
+        String token = verifyRequest.getToken();
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(new ResponseTemplate(200, "Email verified successfully.", null));
+    }
+
 
     @PostMapping("/forget-password")
     public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {
