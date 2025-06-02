@@ -1,7 +1,11 @@
 package id.co.bcaf.solvr.security;
 
+import id.co.bcaf.solvr.model.account.Feature;
+import id.co.bcaf.solvr.model.account.Role;
+import id.co.bcaf.solvr.model.account.RoleToFeature;
 import id.co.bcaf.solvr.services.BlacklistTokenService;
 import id.co.bcaf.solvr.services.FeatureService;
+import id.co.bcaf.solvr.services.RoleService;
 import id.co.bcaf.solvr.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +27,7 @@ import org.springframework.web.filter.GenericFilterBean;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -38,7 +43,12 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     private BlacklistTokenService blacklistTokenService;
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private FeatureService featureService;
+
+
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -74,7 +84,15 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 logger.info("Role Name : {}", role);
 //                List<String> features = featureService.getFeatureByRole(role);
                 String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleWithPrefix));
+                Role roleModel = roleService.getRoleByName(role);
+
+                List<RoleToFeature> features = featureService.getRoleToFeatureByRole(roleModel);
+                List<String> featuresList = features.stream().map(RoleToFeature::getFeature).map(Feature::getName).toList();
+
+                List<GrantedAuthority> authorities =featuresList.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+                authorities.add(new SimpleGrantedAuthority(roleWithPrefix));
 
                 logger.debug("Token validated for user: {}", username);
                 UsernamePasswordAuthenticationToken authenticationToken =

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -142,6 +143,7 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", result));
     }
 
+    @Secured("AUTH_CHANGE_PASSWORD")
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
             @RequestHeader("Authorization") String token,
@@ -164,6 +166,7 @@ public class AuthController {
         }
     }
 
+    @Secured("AUTH_LOGOUT")
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");

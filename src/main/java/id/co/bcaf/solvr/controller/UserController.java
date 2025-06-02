@@ -6,6 +6,7 @@ import id.co.bcaf.solvr.model.account.User;
 import id.co.bcaf.solvr.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    @Secured("USER_READ")
     @GetMapping
     public ResponseTemplate getAllUsers(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -46,6 +48,7 @@ public class UserController {
         }
     }
 
+    @Secured("USER_CREATE")
     @PostMapping
     public ResponseTemplate createUser(@RequestBody User user) {
         // Call the service to create the user
@@ -65,12 +68,13 @@ public class UserController {
         return new ResponseTemplate(200, "Success", httpResponse);
     }
 
-
+    @Secured("USER_UPDATE")
     @PutMapping("{id}")
     public ResponseTemplate updateUser(@PathVariable("id") UUID id, @RequestBody User user) {
         return userService.updateUser(id, user);
     }
 
+    @Secured("USER_DELETE")
     @DeleteMapping("{id}")
     public ResponseTemplate deleteUser(@PathVariable("id") UUID id) {
         return userService.deleteUser(id);

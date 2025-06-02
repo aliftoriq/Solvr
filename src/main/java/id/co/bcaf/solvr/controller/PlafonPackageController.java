@@ -6,6 +6,7 @@ import id.co.bcaf.solvr.model.account.PlafonPackage;
 import id.co.bcaf.solvr.services.PlafonPackageService;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +18,7 @@ public class PlafonPackageController {
     @Autowired
     private PlafonPackageService plafonPackageService;
 
+    @Secured("PLAFON_CREATE")
     @PostMapping
     public ResponseEntity<?> create(@RequestBody PlafonPackageRequest dto) {
         PlafonPackage plafon = new PlafonPackage();
@@ -38,6 +40,7 @@ public class PlafonPackageController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Succes",result));
     }
 
+    @Secured("PLAFON_UPDATE")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PlafonPackageRequest dto) {
         PlafonPackage plafon = new PlafonPackage();
@@ -53,6 +56,7 @@ public class PlafonPackageController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Succes",result));
     }
 
+    @Secured("PLAFON_DELETE")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         plafonPackageService.deletePlafonPackage(id);

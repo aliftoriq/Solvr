@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -38,27 +39,32 @@ public class FeatureController {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", features));
     }
 
+    @Secured("FEATURE_CREATE")
     @PostMapping
     public ResponseEntity<?> createFeature(@RequestBody Feature feature) {
         return ResponseEntity.ok(featureService.createFeature(feature));
     }
 
+    @Secured("ROLE_FEATURE_READ")
     @GetMapping("/role-to-feature")
     public ResponseEntity<?> getAllRoleToFeature() {
         return ResponseEntity.ok(featureService.getAllRoleToFeature());
     }
 
+    @Secured("ROLE_FEATURE_CREATE")
     @PostMapping("/role-to-feature")
     public ResponseEntity<?> createRoleToFeature(@RequestBody RoleToFeatureRequest roleToFeature) {
         return ResponseEntity.ok(featureService.createRoleToFeature(roleToFeature));
     }
 
+    @Secured("ROLE_FEATURE_CREATE_MANY")
     @PostMapping("/role-to-feature/many")
     public ResponseEntity<?> createRoleToFeatureMany(@RequestBody ManyRoleToFeatureRequest roleToFeature) {
         featureService.createRoleToFeatureMany(roleToFeature);
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", null));
     }
 
+    @Secured("ROLE_FEATURE_DELETE_MANY")
     @DeleteMapping("/role-to-feature/many")
     public ResponseEntity<?> deleteRoleToFeatureMany(@RequestBody ManyRoleToFeatureRequest roleToFeature) {
         featureService.deleteRoleToFeatureMany(roleToFeature);

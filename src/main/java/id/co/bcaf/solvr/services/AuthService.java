@@ -266,7 +266,7 @@ public class AuthService {
 
             String htmlContent = "<div style=\"font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px;\">" +
                     "<h2 style=\"color: #2b8a3e;\">Reset Password Request</h2>" +
-                    "<p>Hello <strong>" + user.getName() + "</strong>,</p>" +  // opsional, kalau ada nama
+                    "<p>Hello <strong>" + user.getName() + "</strong>,</p>" +
                     "<p>We received a request to reset your password.</p>" +
                     "<p>Please click the button below to reset your password:</p>" +
                     "<a href=\"" + resetUrl + "\" style=\"display: inline-block; padding: 10px 20px; background-color: #2b8a3e; color: white; text-decoration: none; border-radius: 5px;\">Reset Password</a>" +

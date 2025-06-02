@@ -5,6 +5,7 @@ import id.co.bcaf.solvr.services.CloudinaryService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ public class FileController {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @Secured("IMAGE_UPLOAD")
     @PostMapping
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file) {
         try {
@@ -26,6 +28,7 @@ public class FileController {
         }
     }
 
+    @Secured("IMAGE_PROFILE_UPLOAD")
     @PostMapping("/profile")
     public ResponseEntity<?> uploadProfile(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         UUID userId = (UUID) request.getAttribute("userId");
@@ -50,6 +53,7 @@ public class FileController {
         }
     }
 
+    @Secured("IMAGE_KTP_UPLOAD")
     @PostMapping("/ktp")
     public ResponseEntity<?> uploadKtp(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         UUID userId = (UUID) request.getAttribute("userId");
@@ -62,6 +66,7 @@ public class FileController {
         }
     }
 
+    @Secured("IMAGE_SELFIE_UPLOAD")
     @PostMapping("/selfie")
     public ResponseEntity<?> uploadSelfie(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         UUID userId = (UUID) request.getAttribute("userId");

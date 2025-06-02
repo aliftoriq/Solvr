@@ -89,7 +89,7 @@ public class StartupConfig {
                     "LOAN_CREATE", "LOAN_READ", "LOAN_DETAIL", "LOAN_CALCULATE", "LOAN_CUSTOMER_HISTORY",
                     "LOAN_MARKETING_VIEW", "LOAN_BRANCH_MANAGER_VIEW", "LOAN_BACKOFFICE_VIEW",
                     "LOAN_REVIEW", "LOAN_APPROVE", "LOAN_REJECT", "LOAN_DISBURSE",
-                    "LOAN_SUMMARY", "LOAN_HISTORY",
+                    "LOAN_SUMMARY", "LOAN_HISTORY", "DASHBOARD_SUMMARY",
 
                     // Plafon Management Features
                     "PLAFON_CREATE", "PLAFON_UPDATE", "PLAFON_DELETE", "PLAFON_READ_ALL",
@@ -142,36 +142,37 @@ public class StartupConfig {
                 "AUTH_LOGIN", "AUTH_LOGOUT", "AUTH_VERIFY", "AUTH_FORGET_PASSWORD", "AUTH_RESET_PASSWORD",
                 "AUTH_SAVE_PASSWORD", "AUTH_CHANGE_PASSWORD",
                 "CUSTOMER_READ", "CUSTOMER_DETAIL", "EMPLOYEE_READ", "EMPLOYEE_DETAIL",
-                "LOAN_BRANCH_MANAGER_VIEW", "LOAN_DETAIL", "LOAN_APPROVE", "LOAN_REJECT",
+                "LOAN_BRANCH_MANAGER_VIEW", "LOAN_DETAIL", "LOAN_APPROVE", "LOAN_REJECT", "LOAN_HISTORY",
                 "PLAFON_READ_ALL", "BRANCH_READ", "IMAGE_UPLOAD", "IMAGE_PROFILE_UPLOAD",
-                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE"
+                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE", "DASHBOARD_SUMMARY"
         ), featureRepository, roleToFeatureRepository);
 
         assignFeaturesToRole(backOffice.get(), Arrays.asList(
                 "AUTH_LOGIN", "AUTH_LOGOUT", "AUTH_VERIFY", "AUTH_FORGET_PASSWORD", "AUTH_RESET_PASSWORD",
                 "AUTH_SAVE_PASSWORD", "AUTH_CHANGE_PASSWORD",
-                "CUSTOMER_READ", "CUSTOMER_DETAIL", "EMPLOYEE_READ", "EMPLOYEE_DETAIL",
-                "LOAN_BACKOFFICE_VIEW", "LOAN_DETAIL", "LOAN_APPROVE", "LOAN_REJECT",
+                "CUSTOMER_READ", "CUSTOMER_DETAIL", "EMPLOYEE_DETAIL",
+                "LOAN_BACKOFFICE_VIEW", "LOAN_DETAIL", "LOAN_DISBURSE", "LOAN_REJECT", "LOAN_HISTORY",
                 "PLAFON_READ_ALL", "BRANCH_READ", "IMAGE_UPLOAD", "IMAGE_PROFILE_UPLOAD",
-                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE"
+                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE", "DASHBOARD_SUMMARY"
         ), featureRepository, roleToFeatureRepository);
 
         assignFeaturesToRole(marketing.get(), Arrays.asList(
                 "AUTH_LOGIN", "AUTH_LOGOUT", "AUTH_VERIFY", "AUTH_FORGET_PASSWORD", "AUTH_RESET_PASSWORD",
                 "AUTH_SAVE_PASSWORD", "AUTH_CHANGE_PASSWORD",
                 "CUSTOMER_READ", "CUSTOMER_DETAIL", "EMPLOYEE_READ", "EMPLOYEE_DETAIL",
-                "LOAN_MARKETING_VIEW", "LOAN_DETAIL", "LOAN_REVIEW",
+                "LOAN_MARKETING_VIEW", "LOAN_DETAIL", "LOAN_REVIEW", "LOAN_HISTORY",
                 "PLAFON_READ_ALL", "BRANCH_READ", "IMAGE_UPLOAD", "IMAGE_PROFILE_UPLOAD",
-                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE"
+                "IMAGE_PROFILE_GET", "NOTIFICATION_CREATE", "DASHBOARD_SUMMARY"
         ), featureRepository, roleToFeatureRepository);
 
         assignFeaturesToRole(customer.get(), Arrays.asList(
                 "AUTH_LOGIN", "AUTH_LOGOUT", "AUTH_REGISTER", "AUTH_VERIFY", "AUTH_FORGET_PASSWORD",
                 "AUTH_RESET_PASSWORD", "AUTH_SAVE_PASSWORD", "AUTH_CHANGE_PASSWORD", "AUTH_FIREBASE_LOGIN",
-                "CUSTOMER_DETAIL", "CUSTOMER_UPDATE",
-                "LOAN_CREATE", "LOAN_READ", "LOAN_DETAIL", "LOAN_CALCULATE", "LOAN_CUSTOMER_HISTORY",
+                "CUSTOMER_DETAIL", "CUSTOMER_UPDATE", "CUSTOMER_CREATE",
+                "LOAN_CREATE", "LOAN_READ", "LOAN_DETAIL", "LOAN_CALCULATE", "LOAN_CUSTOMER_HISTORY", "LOAN_SUMMARY",
                 "PLAFON_READ_ALL", "BRANCH_READ", "BRANCH_NEAREST",
-                "IMAGE_UPLOAD", "IMAGE_KTP_UPLOAD", "IMAGE_SELFIE_UPLOAD", "IMAGE_PROFILE_UPLOAD", "IMAGE_PROFILE_GET"
+                "IMAGE_UPLOAD", "IMAGE_KTP_UPLOAD", "IMAGE_SELFIE_UPLOAD", "IMAGE_PROFILE_UPLOAD", "IMAGE_PROFILE_GET",
+                "USER_READ", "USER_CREATE"
         ), featureRepository, roleToFeatureRepository);
 
         logger.info("Initialized role-feature mappings");

@@ -10,6 +10,7 @@ import id.co.bcaf.solvr.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -24,22 +25,26 @@ public class UserEmployeeController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Secured("EMPLOYEE_READ")
     @GetMapping
     public ResponseEntity<?> getAllUserEmployee() {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", userEmployeeService.getAllUserEmployee()));
     }
 
+    @Secured("EMPLOYEE_CREATE")
     @PostMapping
     public ResponseEntity<?> createUserEmployee(HttpServletRequest request, @RequestBody UserEmployeeRequest userEmployee) {
         UUID userId = (UUID) request.getAttribute("userId");
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", userEmployeeService.createUserEmployee(userEmployee)));
     }
 
+    @Secured("EMPLOYEE_UPDATE")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUserEmployee(@PathVariable UUID id, @RequestBody UserEmployeeRequest userEmployee) {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", userEmployeeService.updateUserEmployee(id, userEmployee)));
     }
 
+    @Secured("EMPLOYEE_DETAIL")
     @GetMapping("/detail")
     public ResponseEntity<?> getUserEmployeeByUserId(HttpServletRequest request) {
         UUID userId = (UUID) request.getAttribute("userId");

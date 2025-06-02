@@ -4,6 +4,7 @@ import id.co.bcaf.solvr.dto.ResponseTemplate;
 import id.co.bcaf.solvr.model.account.Role;
 import id.co.bcaf.solvr.services.RoleService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,24 +20,25 @@ public class RoleController {
         this.roleService = roleService;
     }
 
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Secured("ROLE_READ")
     @GetMapping
     public ResponseEntity<?> getAllRoles() {
         return ResponseEntity.ok(new ResponseTemplate(200, "Success", roleService.getAllRoles()));
     }
 
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Secured("ROLE_READ_BY_ID")
     @GetMapping("/{id}")
     public ResponseEntity<Role> getRoleById(@PathVariable int id) {
         return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
+    @Secured("ROLE_CREATE")
     @PostMapping
     public ResponseEntity<Role> createRole(@RequestBody Role role) {
         return ResponseEntity.ok(roleService.createRole(role));
     }
 
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Secured("ROLE_UPDATE")
     @PutMapping("/{id}")
     public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
         try {
@@ -47,7 +49,7 @@ public class RoleController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Secured("ROLE_DELETE")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRole(@PathVariable Long id) {
         try {
