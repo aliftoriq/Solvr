@@ -50,7 +50,7 @@ public class JwtUtil {
     // Generate email verification token
     public String generateVerificationToken(String username) {
         Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 30);
+        Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 15);
 
         return Jwts.builder()
                 .setSubject(username)
