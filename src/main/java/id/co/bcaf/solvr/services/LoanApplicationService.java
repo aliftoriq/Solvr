@@ -341,7 +341,7 @@ public class LoanApplicationService {
         return response;
     }
 
-    public List<LoanApplication> getAllLoanApplicationHistory(UUID userId) {
+    public List<LoanApplicationDetailResponse> getAllLoanApplicationHistory(UUID userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
             throw new EntityNotFoundException("User dengan ID " + userId + " tidak ditemukan");
@@ -353,29 +353,140 @@ public class LoanApplicationService {
         }
 
         UUID employeeId = userEmployee.getId();
-
         List<LoanApplication> requestedLoans = loanApplicationRepository.findByEmployeeId(employeeId);
 
-        if (Objects.equals(user.getRole().getName(), "MARKETING")) {
-            return requestedLoans.stream()
-                    .filter(loan -> !"REQUEST".equals(loan.getStatus()))
+        // Filter berdasarkan role
+        String role = user.getRole().getName();
+        List<LoanApplication> filteredLoans = requestedLoans;
+
+        if ("MARKETING".equalsIgnoreCase(role)) {
+            filteredLoans = requestedLoans.stream()
+                    .filter(loan -> !"REQUEST".equalsIgnoreCase(loan.getStatus()))
                     .collect(Collectors.toList());
+        } else if ("BRANCH MANAGER".equalsIgnoreCase(role)) {
+            filteredLoans = requestedLoans.stream()
+                    .filter(loan -> !"APPROVED".equalsIgnoreCase(loan.getStatus()) && !"REQUEST".equalsIgnoreCase(loan.getStatus()))
+                    .collect(Collectors.toList());
+        } else if ("BACK OFFICE".equalsIgnoreCase(role)) {
+            filteredLoans = requestedLoans.stream()
+                    .filter(loan -> !"DISBURSE".equalsIgnoreCase(loan.getStatus())
+                            && !"APPROVED".equalsIgnoreCase(loan.getStatus())
+                            && !"REQUEST".equalsIgnoreCase(loan.getStatus()))
+                    .collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
         }
 
-        if ("BRANCH MANAGER".equals(user.getRole().getName())) {
-            return requestedLoans.stream()
-                    .filter(loan -> !"APPROVED".equals(loan.getStatus()) && !"REQUEST".equals(loan.getStatus()))
-                    .collect(Collectors.toList());
-        }
+        // Mapping langsung ke DTO
+        return filteredLoans.stream().map(loanApplication -> {
+            LoanApplicationDetailResponse response = new LoanApplicationDetailResponse();
 
-        if ("BACK OFFICE".equals(user.getRole().getName())) {
-            return requestedLoans.stream()
-                    .filter(loan -> !"DISBURSE".equals(loan.getStatus()) && !"APPROVED".equals(loan.getStatus()) && !"REQUEST".equals(loan.getStatus()))
-                    .collect(Collectors.toList());
-        }
+            response.setId(loanApplication.getId());
+            response.setLoanAmount(loanApplication.getLoanAmount());
+            response.setLoanTenor(loanApplication.getLoanTenor());
+            response.setStatus(loanApplication.getStatus());
+            response.setMonthlyPayment(loanApplication.getMonthlyPayment());
+            response.setHousingStatus(loanApplication.getHousingStatus());
 
-        return Collections.emptyList();
+            response.setRequestedAt(loanApplication.getRequestedAt());
+            response.setReviewedAt(loanApplication.getReviewedAt());
+            response.setApprovedAt(loanApplication.getApprovedAt());
+            response.setDisbursedAt(loanApplication.getDisbursedAt());
+
+            response.setLongitude(loanApplication.getLongitude());
+            response.setLatitude(loanApplication.getLatitude());
+
+            UserCustomer customer = loanApplication.getUserCustomer();
+            UserCustomerResponse userCustomer = new UserCustomerResponse();
+            userCustomer.setId(customer.getId());
+            userCustomer.setName(customer.getUser().getName());
+            userCustomer.setNik(customer.getNik());
+            userCustomer.setAddress(customer.getAddress());
+            userCustomer.setBirthDate(customer.getBirthDate());
+            userCustomer.setHousingStatus(customer.getHousingStatus());
+            userCustomer.setPhone(customer.getPhone());
+            userCustomer.setMotherName(customer.getMotherName());
+            userCustomer.setMonthlyIncome(customer.getMonthlyIncome());
+            userCustomer.setTotalPaidLoan(customer.getTotalPaidLoan());
+            userCustomer.setAccountNumber(customer.getAccountNumber());
+            userCustomer.setUrlSelfieWithKtp(customer.getUrlSelfieWithKtp());
+            userCustomer.setUrlKtp(customer.getUrlKtp());
+
+            response.setUserCustomer(userCustomer);
+            response.setName(customer.getUser().getName());
+
+            // Employee & Notes
+            List<UserEmployeeResponse> employees = new ArrayList<>();
+            for (LoanApplicationToEmployee lae : loanApplication.getLoanApplicationToEmployees()) {
+                UserEmployee emp = lae.getUserEmployee();
+                UserEmployeeResponse employee = new UserEmployeeResponse();
+                employee.setId(emp.getId());
+                employee.setName(emp.getUser().getName());
+                employee.setUsername(emp.getUser().getUsername());
+                employee.setEmail(emp.getEmail());
+                employee.setStatus(emp.getUser().getStatus());
+                employee.setDeleted(emp.getUser().isDeleted());
+                employee.setNip(emp.getNip());
+                employee.setDepartment(emp.getDepartment());
+
+                RoleResponse roleResponse = new RoleResponse();
+                roleResponse.setId(emp.getUser().getRole().getId());
+                roleResponse.setName(emp.getUser().getRole().getName());
+                employee.setRole(roleResponse);
+
+                BranchResponse branchResponse = new BranchResponse();
+                branchResponse.setId(emp.getBranch().getId());
+                branchResponse.setName(emp.getBranch().getName());
+                branchResponse.setLatitude(emp.getBranch().getLatitude());
+                branchResponse.setLongitude(emp.getBranch().getLongitude());
+                employee.setBranch(branchResponse);
+
+                switch (emp.getUser().getRole().getName().toUpperCase()) {
+                    case "MARKETING" -> response.setMarketingNotes(lae.getNotes());
+                    case "BRANCH MANAGER" -> response.setBranchManagerNotes(lae.getNotes());
+                    case "BACK OFFICE" -> response.setBackOfficeNotes(lae.getNotes());
+                }
+
+                employees.add(employee);
+            }
+
+            response.setUserEmployee(employees);
+
+            // Plafon
+            PlafonPackage plafonPackage = customer.getPlafonPackage();
+            if (plafonPackage != null) {
+                PlafonPackageResponse plafonResponse = new PlafonPackageResponse();
+                plafonResponse.setId(plafonPackage.getId());
+                plafonResponse.setName(plafonPackage.getName());
+                plafonResponse.setAmount(plafonPackage.getAmount());
+                plafonResponse.setLevel(plafonPackage.getLevel());
+                plafonResponse.setInterestRate(plafonPackage.getInterestRate());
+                plafonResponse.setMaxTenorMonths(plafonPackage.getMaxTenorMonths());
+                response.setPlafonPackage(plafonResponse);
+
+                List<LoanApplication> activeLoans = loanApplicationRepository.findByUserCustomerAndStatusNot(customer, "LUNAS");
+                double totalActive = activeLoans.stream().mapToDouble(LoanApplication::getLoanAmount).sum();
+                response.setRemainingPlafon(plafonPackage.getAmount() - totalActive);
+            }
+
+            // History
+            List<LoanApplication> completedLoans = loanApplicationRepository.findByUserCustomerAndStatus(customer, "LUNAS");
+            response.setTotalCompletedLoans(completedLoans.size());
+
+            List<LoanApplication> currentActiveLoans = loanApplicationRepository.findByUserCustomerAndStatus(customer, "DISBURSEMENT");
+            double totalMonthly = currentActiveLoans.stream().mapToDouble(LoanApplication::getMonthlyPayment).sum();
+            response.setTotalMonthlyPayment(totalMonthly);
+
+            if (customer.getMonthlyIncome() != null && customer.getMonthlyIncome() > 0) {
+                double dti = (totalMonthly / customer.getMonthlyIncome()) * 100;
+                response.setDebtToIncomeRatio(dti);
+                response.setRiskLevel(dti < 30 ? "LOW" : (dti < 50 ? "MEDIUM" : "HIGH"));
+            }
+
+            return response;
+        }).collect(Collectors.toList());
     }
+
 
     public List<LoanApplication> getAllCustomerHistory(UUID userId) {
         User user = userService.getUserById(userId);
