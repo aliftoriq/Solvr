@@ -79,8 +79,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String requestURI = httpRequest.getRequestURI();
         String authHeader = httpRequest.getHeader("Authorization");
 
-        logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
-
         if (path.startsWith("/api/v1/auth/login") ||
                 path.startsWith("/api/v1/auth/register") ||
                 path.startsWith("/api/v1/auth/verify") ||
@@ -89,12 +87,25 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 path.startsWith("/api/v1/auth/change-password") ||
                 path.startsWith("/api/v1/auth/firebase-login") ||
                 path.startsWith("/api/v1/plafon/all") ||
-                path.startsWith("/api/v1/notification")
+                path.startsWith("/api/v1/notification") ||
+
+                path.startsWith("/be/api/v1/auth/login") ||
+                path.startsWith("/be/api/v1/auth/register") ||
+                path.startsWith("/be/api/v1/auth/verify") ||
+                path.startsWith("/be/api/v1/auth/reset-password") ||
+                path.startsWith("/be/api/v1/auth/forget-password") ||
+                path.startsWith("/be/api/v1/auth/change-password") ||
+                path.startsWith("/be/api/v1/auth/firebase-login") ||
+                path.startsWith("/be/api/v1/plafon/all") ||
+                path.startsWith("/be/api/v1/notification")
 
         ) {
             chain.doFilter(request, response);
             return;
         }
+
+
+        logger.info("Processing request: {} with Authorization header: {}", requestURI, authHeader);
 
         // Check for Authorization header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
