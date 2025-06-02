@@ -692,7 +692,7 @@ public class LoanApplicationService {
         lae.setNotes(notes);
         loanAplicationToEmployeeRepository.save(lae);
 
-        sendLoanStatusEmail(loanApplication.getUserCustomer().getUser(), "REJECTED", notes);
+        sendLoanStatusEmail(loanApplication.getUserCustomer().getUser(), "REJECTED", "Mohon periksa kembali data dan dokumen anda");
 
         return loanApplicationRepository.save(loanApplication);
     }
