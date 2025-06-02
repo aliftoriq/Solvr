@@ -24,6 +24,6 @@ public class Branch {
     private double latitude;
 
     @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference("branch-userEmployee")
     private Set<UserEmployee> employees;
 }

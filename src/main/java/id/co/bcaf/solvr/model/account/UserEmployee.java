@@ -24,7 +24,7 @@ public class UserEmployee {
     private String department;
 
     @ManyToOne
-    @JsonBackReference
+    @JsonBackReference("branch-userEmployee")
     private Branch branch;
 
     @OneToMany(fetch = FetchType.LAZY)
