@@ -139,7 +139,7 @@ public class AuthService {
             user.setVerifyTokenHash(hashedToken);
             userRepository.save(user);
 
-            String verifyUrl = "https://solvr-web.vercel.app/verify-email?token=" + newToken;
+            String verifyUrl = "https://solvr-web.vercel.app/verify-email?token=" + hashedToken;
             sendVerificationEmail(user, verifyUrl);
         }
 
