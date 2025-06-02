@@ -32,7 +32,27 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/home", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "api/v1/auth/verify", "api/v1/auth/reset-password", "/api/v1/auth/forget-password", "/api/v1/auth/change-password", "/api/v1/auth/firebase-login","/api/v1/plafon/all", "/api/v1/notification").permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/verify",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/forget-password",
+                                "/api/v1/auth/change-password",
+                                "/api/v1/auth/firebase-login",
+                                "/api/v1/plafon/all",
+                                "/api/v1/notification",
+
+                                "/be/api/v1/auth/register",
+                                "/be/api/v1/auth/login",
+                                "/be/api/v1/auth/verify",
+                                "/be/api/v1/auth/reset-password",
+                                "/be/api/v1/auth/forget-password",
+                                "/be/api/v1/auth/change-password",
+                                "/be/api/v1/auth/firebase-login",
+                                "/be/api/v1/plafon/all",
+                                "/be/api/v1/notification"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
