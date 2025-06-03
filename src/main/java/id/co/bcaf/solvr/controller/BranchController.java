@@ -20,6 +20,7 @@ public class BranchController {
     @Autowired
     BranchService branchService;
 
+    @Secured("BRANCH_READ")
     @GetMapping
     public ResponseEntity<?> getAllBranch() {
         return ResponseEntity.ok(branchRepository.findAll());

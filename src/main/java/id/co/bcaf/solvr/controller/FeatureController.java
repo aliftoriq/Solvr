@@ -31,6 +31,7 @@ public class FeatureController {
     @Autowired
     private FeatureService featureService;
 
+    @Secured("FEATURE_READ")
     @GetMapping
     public ResponseEntity<?> getFeature() {
 
