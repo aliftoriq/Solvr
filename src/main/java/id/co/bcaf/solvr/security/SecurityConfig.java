@@ -66,8 +66,8 @@ public class SecurityConfig {
                 "Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"
         ));
         configuration.setAllowCredentials(true);
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedOriginPattern("*");
+//        configuration.addAllowedHeader("*");
+//        configuration.addAllowedOriginPattern("*");
 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
