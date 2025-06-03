@@ -75,7 +75,7 @@ public class LoanApplicationService {
         }
 
         if (userCustomer.getUrlKtp() == null || userCustomer.getUrlKtp().isEmpty()) {
-            throw new CustomException.InvalidInputException("UserCustomer belum mengunggah KTP");
+            throw new EntityNotFoundException("UserCustomer Belum memiliki KTP dan Selfie");
         }
 
         LoanApplication loanApplication = new LoanApplication();
